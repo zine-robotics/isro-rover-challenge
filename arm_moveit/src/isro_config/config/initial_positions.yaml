@@ -1,0 +1,9 @@
+# Default initial positions for isroarm's ros2_control fake system
+
+initial_positions:
+  Revolute 19: 0.523599
+  Revolute 13: 1.309
+  Revolute 14: 0
+  Revolute 15: 0
+  Revolute 16: 0
+  Slider 17: 0

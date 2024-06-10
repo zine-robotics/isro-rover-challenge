@@ -1,0 +1,8 @@
+geometry_msgs/PoseArray waypoints
+
+---
+bool success
+
+---
+geometry_msgs/Point current_position
+float32 distance

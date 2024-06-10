@@ -1,0 +1,4 @@
+geometry_msgs/Pose pose
+int8 tag
+---
+int8 success

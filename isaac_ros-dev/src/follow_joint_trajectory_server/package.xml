@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>follow_joint_trajectory_server</name>
+  <version>0.0.0</version>
+  <description>action server for moveit</description>
+  <maintainer email="aswinarunkumar8@gmail.com">Aswin</maintainer>
+  <license>Apache-2.0</license>
+
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>rclpy_action</exec_depend>
+  <exec_depend>time</exec_depend>
+  <exec_depend>math</exec_depend>
+  <exec_depend>pyserial</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>threading</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

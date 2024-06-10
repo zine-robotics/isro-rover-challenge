@@ -1,0 +1,12 @@
+#this file may not be needed
+
+controller_list:
+  - name: joint_trajectory_controller
+    type: FollowJointTrajectory
+    # to be changed?
+    joints:
+      - joint0
+      - joint1
+      - joint2
+      - joint3
+      - joint4
