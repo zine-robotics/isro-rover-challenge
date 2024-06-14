@@ -1,0 +1,33 @@
+# This config file is used by ros2_control
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    zine_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+
+    zine_hand_controller:
+      type: position_controllers/GripperActionController
+
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+zine_arm_controller:
+  ros__parameters:
+    joints:
+      - joint_0
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+    command_interfaces:
+      - position
+    state_interfaces:
+      - velocity
+      - position
+    allow_nonzero_velocity_at_trajectory_end: true
+zine_hand_controller:
+  ros__parameters:
+    joint: joint5

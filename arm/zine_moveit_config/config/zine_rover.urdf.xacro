@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="zine_rover">
+    <!-- <xacro:arg name="initial_positions_file" default="initial_positions.yaml" /> -->
+
+    <!-- Import zine_rover urdf file -->
+    <xacro:include filename="$(find zine_rover_description)/urdf/zine_rover.xacro" />
+
+    <!-- Import control_xacro -->
+    <!-- <xacro:include filename="zine_rover.ros2_control.xacro" /> -->
+
+
+    <!-- <xacro:zine_rover_ros2_control name="ZineRover" initial_positions_file="$(arg initial_positions_file)"/> -->
+
+</robot>
