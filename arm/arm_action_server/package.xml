@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>follow_joint_trajectory_server</name>
+  <name>arm_action_server</name>
   <version>0.0.0</version>
   <description>action server for moveit</description>
-  <maintainer email="aswinarunkumar8@gmail.com">Aswin</maintainer>
+  <maintainer email="345priyansh@gmail.com">Priyansh</maintainer>
   <license>Apache-2.0</license>
 
 

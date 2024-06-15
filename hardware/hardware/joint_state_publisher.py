@@ -15,18 +15,19 @@ class JointStatePublisher(Node):
      
         # Create a JointState message object
         self.joint_state = JointState()
-        self.joint_state.name = ['Revolute 19',
-                    'Revolute 13',
-                    'Revolute 14',
-                    'Revolute 15',
-                    'Revolute 16',
-                    # 'Slider 17'
-                ]
+        self.joint_state.name = [
+            'joint_0',
+            'joint1',
+            'joint2',
+            'joint3',
+            'joint4',
+            'joint5'
+        ]
 
         # Set initial or dynamic joint positions
-        self.joint_state.position = [0.0,0.0,0.0,0.0,0.0]    # Example joint positions in radians
-        self.joint_state.velocity=[0.0,0.0,0.0,0.0,0.0]
-        self.joint_state.effort=[float('nan'),float('nan'),float('nan'),float('nan'),float('nan'),float('nan')]
+        self.joint_state.position = [0.0,0.0,0.0,0.0,0.0,0.0]    # Example joint positions in radians
+        self.joint_state.velocity=[0.0,0.0,0.0,0.0,0.0,0.0]
+        self.joint_state.effort=[float('nan'),float('nan'),float('nan'),float('nan'),float('nan'),float('nan'),float('nan')]
 
         # Set the publishing rate (optional, adjust as needed)
         self.pub_rate = 10  # Hz

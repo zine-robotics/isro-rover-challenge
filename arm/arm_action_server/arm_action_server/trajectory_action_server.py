@@ -14,7 +14,7 @@ class FollowJointTrajectoryServer(Node):
         self._action_server = ActionServer(
             self,
             FollowJointTrajectory,
-            'arm_controller/follow_joint_trajectory',
+            'zine_arm_controller/follow_joint_trajectory',
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback)
@@ -42,7 +42,7 @@ class FollowJointTrajectoryServer(Node):
         original_order: list = goal_handle.request.trajectory.joint_names
 
         # Desired order of joint names
-        desired_order = ['Revolute 19', 'Revolute 13', 'Revolute 14', 'Revolute 15', 'Revolute 16']
+        desired_order = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4']
 
         # Create a mapping from the joint names to their indices in the original order
         mapping = {joint_name: original_order.index(joint_name) for joint_name in desired_order}

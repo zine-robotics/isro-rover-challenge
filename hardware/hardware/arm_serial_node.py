@@ -6,11 +6,18 @@ import serial
 import time
 
 class ArduinoCommunicationNode(Node):
-    def __init__(self):
+    def __init__(self, serial_port='1'):
+
         super().__init__('arduino_communication_node')
 
+        #choose the required port 
+        if serial_port == '0':
+            serial_port_str = '/dev/ttyACM0'
+        else:
+            serial_port_str = '/dev/ttyACM1'
+        
         # Initialize serial connection with retries
-        self.serial_port = '/dev/ttyACM1'  # Change as needed
+        self.serial_port = serial_port_str  # Change as needed
         self.array_length = 5
         self.baud_rate = 115200  # Change as needed
         self.ser: serial.Serial = None
