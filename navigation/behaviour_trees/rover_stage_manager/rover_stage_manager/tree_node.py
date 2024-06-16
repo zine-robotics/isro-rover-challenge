@@ -30,7 +30,7 @@ def create_root():
         BaseStationSetup(),
         Calibrate(), 
         WaypointNavigate(),
-        # PickupObject(),
+        PickupObject(),
         AutonomousNavigate(),
         Finish()
     ])

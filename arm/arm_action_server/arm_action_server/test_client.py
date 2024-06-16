@@ -10,7 +10,7 @@ class TestFollowJointTrajectoryClient(Node):
 
     def __init__(self):
         super().__init__('test_follow_joint_trajectory_client')
-        self._action_client = ActionClient(self, FollowJointTrajectory, 'arm_controller/follow_joint_trajectory')
+        self._action_client = ActionClient(self, FollowJointTrajectory, 'zine_arm_controller/follow_joint_trajectory')
         
     def send_goal(self):
         goal_msg = FollowJointTrajectory.Goal()
@@ -22,7 +22,7 @@ class TestFollowJointTrajectoryClient(Node):
         point.time_from_start.sec = 1
 
         goal_msg.trajectory.points.append(point)
-        goal_msg.trajectory.joint_names = ['Revolute 19', 'Revolute 13', 'Revolute 14', 'Revolute 15', 'Revolute 16']
+        goal_msg.trajectory.joint_names = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4']
         
         self._action_client.wait_for_server()
         self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
