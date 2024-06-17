@@ -5,12 +5,14 @@ A script to outline the fundamentals of the moveit_py motion planning API.
 """
 
 import time
+from rclpy.node import Node
+from geometry_msgs.msg import Pose
 
 # generic ros libraries
 import rclpy
 from rclpy.logging import get_logger
 # from kinematic_solver import zine_ik_solver
-
+from std_msgs.msg import Bool
 # moveit python library
 from moveit.core.robot_state import RobotState
 from moveit.planning import (
@@ -44,13 +46,51 @@ joint_limits = {
     'theta6_max': 180,
 }
 
-# Target end effector position (x, y, z) in centimeters
-# target_x = 50
-# target_y = 25
-# target_z = 0
+class PickPlace(Node):
+    def __init__(self,):
+        super().__init__('pose_goal_subscriber')
+        self.pick_subscription = self.create_subscription(
+            Pose,
+            '/final_pick_pose',  
+            self.pick_pose_goal_callback,
+            10)
+        self.pick_subscription
+        
+        self.drop_subscription = self.create_subscription(
+            Pose,
+            '/final_drop_pose',  
+            self.drop_pose_goal_callback,
+            10)
+        self.drop_subscription
 
-# # Fixed orientation of link1 (in degrees)
-# theta1_fixed = 0  # assuming link1 is upright along the positive x-axis
+        self.publisher_ = self.create_publisher(Bool, '/pose_status', 10)
+
+    def pick_pose_goal_callback(self, msg):
+        # Process received pose goal message
+        x = msg.position.x
+        y = msg.position.y
+        z = msg.position.z
+        pose = {'x':x,'y':y,'z':z}
+        self.get_logger().info(f"Received Pick Pose Goal: x={x}, y={y}, z={z}")
+        pick_object(zine_rover,zine_arm,logger,pose)
+
+        msg2 = Bool()
+        msg2.data = True
+        self.publisher_.publish(msg2)
+
+    def drop_pose_goal_callback(self, msg):
+        # Process received pose goal message
+        x = msg.position.x
+        y = msg.position.y
+        z = msg.position.z
+        pose = {'x':x,'y':y,'z':z}
+        self.get_logger().info(f"Received Pose Goal: x={x}, y={y}, z={z}")
+        drop_object(zine_rover,zine_arm,logger,pose)
+
+        msg2 = Bool()
+        msg2.data = True
+        self.publisher_.publish(msg2)
+
 
 def fix_quadrants(solution):
     limits = list(joint_limits.values())
@@ -199,9 +239,9 @@ def move_to_pose(zine_rover,zine_arm,logger,pose):
     robot_model = zine_rover.get_robot_model()
     robot_state = RobotState(robot_model)
     
-    x = pose[0]
-    y = pose[1]
-    z = pose[2]
+    x = pose['x']
+    y = pose['y']
+    z = pose['z']
 
     joint_ik_values = zine_ik_solver(x,y,z)
     joint_values = {
@@ -222,29 +262,69 @@ def move_to_pose(zine_rover,zine_arm,logger,pose):
     plan_and_execute(zine_rover, zine_arm, logger, sleep_time=5)
 
 
+
+def pick_object(zine_rover,zine_arm,logger,pose):
+
+    #implement approcah near object
+    pose['x']-=0.05
+    move_to_pose(zine_rover,zine_arm,logger,pose)
+    logger.info("Arm reached for approaching position")
+
+    #implment approach at object
+    pose['x']+=0.05
+    move_to_pose(zine_rover,zine_arm,logger,pose)
+    logger.info("Arm reached for gripping position")
+
+    #implement gripping action 
+
+    #implement move to ready state
+    zine_arm.set_start_state_to_current_state()
+    zine_arm.set_goal_state(configuration_name="ready")
+    plan_and_execute(zine_rover, zine_arm, logger, sleep_time=5)
+    logger.info("Arm reached ready state")
+
+
+def drop_object(zine_rover,zine_arm,logger,pose):
+
+    #implement approcah near object
+    pose['x']-=0.05
+    move_to_pose(zine_rover,zine_arm,logger,pose)
+    logger.info("Arm reached for approaching position")
+
+    #implment approach at object
+    pose['x']+=0.05
+    move_to_pose(zine_rover,zine_arm,logger,pose)
+    logger.info("Arm reached for gripping position")
+
+    #implement dropping action 
+
+    #implement move to ready state
+    zine_arm.set_start_state_to_current_state()
+    zine_arm.set_goal_state(configuration_name="ready")
+
+
 def main():
 
-
     rclpy.init()
+
+    global zine_rover
+    global zine_arm
+    global logger
+
     logger = get_logger("moveit_py.pose_goal")
 
     # instantiate MoveItPy instance and get planning component
+
     zine_rover = MoveItPy(node_name="moveit_py")
     zine_arm = zine_rover.get_planning_component("zine_arm")
     logger.info("MoveItPy instance created")
 
-    POSE = [50,30,-5]
-    POSE[2]+=10
-    move_to_pose(zine_rover,zine_arm,logger,POSE)
-    logger.info("Arm reached for approaching position")
-    time.sleep(5)
-    POSE[2]-=10
-    move_to_pose(zine_rover,zine_arm,logger,POSE)
-    logger.info("Arm reached for gripping position")
-    POSE[2]+=40
-    move_to_pose(zine_rover,zine_arm,logger,POSE)
-    logger.info("Arm reached for safe position")
+    pick_n_place_node = PickPlace()
+    rclpy.spin(pick_n_place_node)  # Keep the node running
 
+    # Cleanup
+    pick_n_place_node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == "__main__":

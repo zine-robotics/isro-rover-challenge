@@ -93,4 +93,15 @@ def generate_launch_description():
         )
     )
 
+    ld.add_action(
+        Node(
+            package="arm_planner",
+            name="moveit_py",
+            executable="moveit_python_api",
+            output="both",
+            parameters=[moveit_config.to_dict()],
+        )
+    )
+
+
     return ld

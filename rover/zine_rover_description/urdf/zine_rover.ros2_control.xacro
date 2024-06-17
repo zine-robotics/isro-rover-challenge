@@ -4,6 +4,7 @@
   <ros2_control name="ZineRover" type="system">
       <hardware>
           <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+          <!-- <plugin>mock_components/GenericSystem</plugin> -->
       </hardware>
 
       <joint name="joint_0">
