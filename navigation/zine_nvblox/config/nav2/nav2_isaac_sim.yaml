@@ -84,7 +84,7 @@ controller_server:
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.3
+    failure_tolerance: 0.2
     progress_checker_plugin: "progress_checker"
     goal_checker_plugin: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
@@ -92,7 +92,7 @@ controller_server:
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.7
+      required_movement_radius: 0.5
       movement_time_allowance: 10.0
     # Goal checker parameters
     general_goal_checker:
@@ -112,20 +112,20 @@ controller_server:
       # Rotation Shim Controller params
       # This will turn the robot in place when the heading difference between the robot
       # and the path is too big. 
-      plugin: "nav2_rotation_shim_controller::RotationShimController"
-      primary_controller: "dwb_core::DWBLocalPlanner"
-      angular_dist_threshold: 0.3 # ~= 17 degree
-      forward_sampling_distance: 1.0
-      rotate_to_heading_angular_vel: 1.8
-      max_angular_accel: 3.2
-      simulate_ahead_time: 1.0
-  
+      # plugin: "nav2_rotation_shim_controller::RotationShimController"
+      # primary_controller: "dwb_core::DWBLocalPlanner"
+      # angular_dist_threshold: 0.3 # ~= 17 degree
+      # forward_sampling_distance: 1.0
+      # rotate_to_heading_angular_vel: 1.8
+      # max_angular_accel: 3.2
+      # simulate_ahead_time: 1.0
+
       # Primary controller params (DWBLocalPlanner)
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.1
+      min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.1
+      max_vel_x: 0.2
       max_vel_y: 0.0
       max_vel_theta: 1.0
       min_speed_xy: 0.0
@@ -169,11 +169,11 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [0.2, 0.0, 0.5]
-    min_velocity: [-0.2, 0.0, -0.5]
+    max_velocity: [1.0, 0.0, 2.0]
+    min_velocity: [0.0, 0.0, -2.0]
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
-    max_accel: [0.5, 0.0, 1.0]
+    max_accel: [1.0, 0.0, 2.0]
     max_decel: [-1.0, 0.0, -2.0]
     odom_topic: "odom"
     odom_duration: 0.1
@@ -200,7 +200,7 @@ local_costmap:
         plugin: "nvblox::nav2::NvbloxCostmapLayer"
         enabled: True
         max_obstacle_distance: 1.0
-        inflation_distance: 0.4
+        inflation_distance: 0.5
         nvblox_map_slice_topic: "/nvblox_node/static_map_slice"
       nvblox_human_layer:
         plugin: "nvblox::nav2::NvbloxCostmapLayer"
@@ -221,29 +221,38 @@ global_costmap:
     ros__parameters:
       update_frequency: 10.0
       publish_frequency: 10.0
-      static_map: true
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: True
       rolling_window: True
-      lethal_cost_threshold: 100
-      track_unknown_space: true
-      # width: 10
-      # height: 4
+      width: 100
+      height: 100
       robot_radius: 0.7
-      resolution: 0.01
-      origin_x: 45.0 #-100.0
-      origin_y: 15.0 #-100.0
-      plugins: ["static_layer","nvblox_base_layer"]
+      resolution: 0.1
+      origin_x: 0.0
+      origin_y: 0.0
+      plugins: ["static_layer","inflation_layer","nvblox_base_layer", "nvblox_human_layer"]
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+        enabled: True
       static_layer:
         plugin : "nav2_costmap_2d::StaticLayer"
         map_subscribe_transent_local: True
+        map_topic: "/cost_map_static"
       nvblox_base_layer:
         plugin: "nvblox::nav2::NvbloxCostmapLayer"
         enabled: True
         max_obstacle_distance: 1.0
         inflation_distance: 0.4
         nvblox_map_slice_topic: "/nvblox_node/static_map_slice"
+      nvblox_human_layer:
+        plugin: "nvblox::nav2::NvbloxCostmapLayer"
+        enabled: True
+        max_obstacle_distance: 1.0
+        inflation_distance: 0.4
+        nvblox_map_slice_topic: "/nvblox_human_node/dynamic_map_slice"
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:
@@ -260,7 +269,7 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-      use_astar: true
+      use_astar: false
       allow_unknown: true
 
 planner_server_rclcpp_node:
@@ -313,4 +322,3 @@ waypoint_follower:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
       waypoint_pause_duration: 200
-

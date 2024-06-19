@@ -38,29 +38,17 @@ class MapServer(Node):
         self.objects = []
 
         qos_profile = QoSProfile(depth=3,durability=QoSDurabilityPolicy.TRANSIENT_LOCAL)
-        self.yaml_filename = self.declare_parameter('yaml_filename', '/workspaces/isaac_ros-dev/src/map_server/config/map.yaml').get_parameter_value().string_value
+        self.yaml_filename = self.declare_parameter('yaml_filename', '/workspaces/isaac_ros-dev/src/navigation/map_server/config/map.yaml').get_parameter_value().string_value
         self.frame_id = self.declare_parameter('frame_id', 'odom').get_parameter_value().string_value
         self.inflation = 10#self.declare_parameter('inflation', 10).get_parameter_value()
 
         #self.add_object_service = self.create_service(AddObjectSrv, 'add_object', self.add_object_callback)
         self.occ_service = self.create_service(GetMap, 'get_map', self.get_map_callback)
         self.occ_pub = self.create_publisher(OccupancyGrid,'map', qos_profile=qos_profile)
-        # self.subscription = self.create_subscription('costmap', OccupancyGrid, queue_size=1, latch=True)
+        self.costmap_pub = self.create_publisher(OccupancyGrid,'cost_map_static' ,qos_profile=qos_profile)
 
         self.on_configure(None)
     
-    def add_object_callback(self, request: AddObject):
-        self.objects.append(request)
-        self.object_map = add_object(self.object_map, request)
-        self.map.data = create_occupancymap(self.object_map)
-        self.costmap.data = create_costmap(self.object_map, self.inflation)
-        
-        self.occ_pub.publish(self.map)
-        #self.costmap_pub.publish(self.costmap)
-
-        self.get_logger().info('Updated costmap and occupancy map')
-        return True
-
     def get_map_callback(self, request):
         if self.map:
             return self.map
@@ -102,9 +90,7 @@ class MapServer(Node):
         # object_map = np.fliplr(object_map)
 
         # Create Object Map
-        self.object_map = object_map
-        print(self.object_map)
-        self.objects = []
+
 
         # Load Occupancy Map
         map = OccupancyGrid()
@@ -121,15 +107,24 @@ class MapServer(Node):
         map.info.origin.orientation.w = 0.0 #origin[6]
         map.data = create_occupancymap(object_map)
         self.map = map
+        self.occ_pub.publish(self.map)
 
-        self.costmap = OccupancyGrid()
-        self.costmap.header.frame_id = self.frame_id
-        self.costmap.info = map.info
-        #self.costmap.data = create_costmap(object_map, self.inflation)
-        
+        costmap = OccupancyGrid()
+        costmap.header.frame_id = self.frame_id
+        costmap.info = map.info
+        costmap.info.origin.position.x = origin[0] - 10
+        costmap.info.origin.position.y = origin[1] - 4
+        costmap.info.origin.position.z = 0.0
+        costmap.info.origin.orientation.z = 0.0
+        costmap.info.origin.orientation.w = -1.0 #origin[5]
+        costmap.data = create_occupancymap(np.fliplr(np.flipud(object_map)))
+        self.costmap = costmap
+        self.costmap_pub.publish(self.costmap)
+
         self.get_logger().info("Loaded yaml file!")
         self.get_logger().info(f"({min(image), max(image)})")
-        self.occ_pub.publish(self.map)
+        # self.occ_pub.publish(self.map)
+        
         self.get_logger().info('Published map')
         return True
 

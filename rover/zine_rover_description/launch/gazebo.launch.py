@@ -75,5 +75,5 @@ def generate_launch_description():
         spawn_entity,
         robot_localization_node,
         twist_mux,
-        rviz_node,
+        # rviz_node,
     ])

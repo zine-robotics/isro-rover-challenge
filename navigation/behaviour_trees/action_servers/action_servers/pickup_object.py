@@ -68,16 +68,14 @@ class PickupObjectActionServer(Node):
     async def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
         self._goal_handle = goal_handle
-
         self.object_position = goal_handle.request.object_position
 
-
-        while self._goal_handle is not None:
-            rclpy.spin_once(self)
-            # Some break condition pls
-
-            # if self._current_waypoint_index >= len(self._waypoints):
-            #     break
+        #Implement get pose of the object
+        #Implement move to object range
+        #Implement find final pose (avg pose for 5 s)
+        #Publish to /final_pick_pose
+        #Listen for /pose_status
+        #Implement Confirm that object is not there
         
         result = Pickup.Result()
         result.success = True

@@ -22,7 +22,9 @@ setup(
     entry_points={
         'console_scripts': [
             'arm_serial_node = hardware.arm_serial_node:main',
-            'joint_state_publisher = hardware.joint_state_publisher:main'
+            'joint_state_publisher = hardware.joint_state_publisher:main',
+            'twist_to_arduino = hardware.twist_to_arduino:main',
+            'odom_publisher = hardware.odom_publisher:main',
         ],
     },
 )

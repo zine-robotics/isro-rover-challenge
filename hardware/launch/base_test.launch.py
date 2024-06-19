@@ -1,7 +1,14 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+
+rover_dir = get_package_share_directory('zine_rover_description')
 
 def generate_launch_description():
     return LaunchDescription([
@@ -25,6 +32,11 @@ def generate_launch_description():
             package='hardware',
             executable='odom_publisher',
             name='odom_publisher'
-        )
+        ),
+        
+        IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(
+           rover_dir, 'launch', 'real.launch.launch.py')
+        ))
     ])
 

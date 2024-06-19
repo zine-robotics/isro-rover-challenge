@@ -2,7 +2,7 @@
 from moveit_configs_utils import MoveItConfigsBuilder
 from moveit_configs_utils.launches import generate_demo_launch
 from ament_index_python.packages import get_package_share_directory
-from moveit.planning import MoveItPy
+# from moveit.planning import MoveItPy
 from launch_ros.actions import Node
 
 from launch import LaunchDescription
