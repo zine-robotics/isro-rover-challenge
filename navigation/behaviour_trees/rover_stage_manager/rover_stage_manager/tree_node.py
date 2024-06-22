@@ -42,7 +42,7 @@ def main():
 
     root = create_root()
     tree = py_trees_ros.trees.BehaviourTree(root)
-    tree.setup(timeout=15)
+    tree.setup(timeout=30)
 
     # tree.tick_tock(period_ms=1000.0)
     # try:
