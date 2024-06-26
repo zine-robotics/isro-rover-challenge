@@ -2,32 +2,48 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from interfaces.action import Pickup 
-import math
-from rclpy.qos import QoSProfile
+from geometry_msgs.msg import Pose, PoseStamped
+
 
 class PickupObjectActionServer(Node):
-
     def __init__(self):
         super().__init__('pickup_object')
-        # self.subscription = self.create_subscription(
-        #     Odometry,
-        #     'odom',
-        #     self.odom_callback,
-        #     QoSProfile(depth=10))
-        # self.publisher = self.create_publisher(Twist, 'cmd_vel', QoSProfile(depth=10))
         self.action_server = ActionServer(
             self,
             Pickup,
             'pickup_object',
             self.execute_callback,
             goal_callback=self.goal_callback,
-            cancel_callback=self.cancel_callback)
+            cancel_callback=self.cancel_callback
+        )
+
+        self.pose_subscription = self.create_subscription(
+            PoseStamped,
+            'object_pose',
+            self.pose_callback,
+            10
+        )
+
+        self.pose_status_subscription = self.create_subscription(
+            PoseStamped,
+            'pose_status',
+            self.pose_status_callback,
+            1
+        )
+        
+        self.final_pose_publisher = self.create_publisher(
+            Pose,
+            'final_object_pose',
+            1
+        )
         self.current_position = None
         self.current_orientation = None
         self.tolerance = 0.1
         self._goal_handle = None
-        self._waypoints = []
-        self._current_waypoint_index = 0
+        self.poses = []
+        self.aligned = False
+        self.published_final_pose = False
+        self.confirm_pick = False
 
         self.get_logger().info('Initialized Pick Up Object Action Server')
 
@@ -39,43 +55,56 @@ class PickupObjectActionServer(Node):
         self.get_logger().info('Received cancel request')
         return CancelResponse.ACCEPT
 
-    def move_to_waypoint(self):
-        target_x, target_y = self._waypoints[self._current_waypoint_index]
+    def pose_callback(self, msg):
+        if not self.aligned or self.published_final_pose:
+            return
+        
+        if len(self.poses) < 5:
+            self.poses.append(msg.pose)
+        else:
+            sum_x = sum(p.position.x for p in self.poses)
+            sum_y = sum(p.position.y for p in self.poses)
+            sum_z = sum(p.position.z for p in self.poses)
+            sum_qx = sum(p.orientation.x for p in self.poses)
+            sum_qy = sum(p.orientation.y for p in self.poses)
+            sum_qz = sum(p.orientation.z for p in self.poses)
+            sum_qw = sum(p.orientation.w for p in self.poses)
 
-        # if distance < self.tolerance:
-        #     self.get_logger().info(f'{distance} | {self.current_position} | {(target_x, target_y)}')
-        #     self.get_logger().info(f'Reached waypoint {self._current_waypoint_index + 1}')
-        #     self._current_waypoint_index += 1
-        #     if self._current_waypoint_index >= len(self._waypoints):
-        #         self._goal_handle.succeed()
-        #         self._goal_handle = None
+            n = len(self.poses)
+            avg_pose = Pose()
+            avg_pose.position.x = sum_x / n
+            avg_pose.position.y = sum_y / n
+            avg_pose.position.z = sum_z / n
+            avg_pose.orientation.x = sum_qx / n
+            avg_pose.orientation.y = sum_qy / n
+            avg_pose.orientation.z = sum_qz / n
+            avg_pose.orientation.w = sum_qw / n
 
-        #         # Stopppp
-        #         cmd_vel = Twist()
-        #         self.publisher.publish(cmd_vel)
-        #         self.get_logger().info(f'Finished waypoint navigation {self.current_position}')
+            self.published_final_pose = True
+            self.final_pose_publisher.publish(avg_pose)
 
-        #     return
+    def pose_status_callback(self, msg):
+        self.get_logger().info('Received object pose status')
+        print(msg)
 
-        # cmd_vel = Twist()
-        # self.publisher.publish(cmd_vel)
-
-        # feedback_msg = Waypoint.Feedback()
-        # feedback_msg.current_position = Point(x=self.current_position[0], y=self.current_position[1], z=0.0)
-        # feedback_msg.distance = distance
-        # self._goal_handle.publish_feedback(feedback_msg)
+    def align_bot(self):
+        self.get_logger().info('Trying to align the bot..')
+        self.aligned = True
 
     async def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
         self._goal_handle = goal_handle
         self.object_position = goal_handle.request.object_position
+        feedback_msg = Pickup.Feedback()
 
-        #Implement get pose of the object
-        #Implement move to object range
-        #Implement find final pose (avg pose for 5 s)
-        #Publish to /final_pick_pose
-        #Listen for /pose_status
-        #Implement Confirm that object is not there
+        while self._goal_handle is not None:
+            rclpy.spin_once(self)
+            # Some break condition pls
+        
+        self.align_bot()
+        self.get_final_object_pose()
+
+        goal_handle.succeed()
         
         result = Pickup.Result()
         result.success = True

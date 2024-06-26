@@ -14,15 +14,20 @@ from rclpy.logging import get_logger
 # from kinematic_solver import zine_ik_solver
 from std_msgs.msg import Bool
 # moveit python library
-from moveit.core.robot_state import RobotState
-from moveit.planning import (
-    MoveItPy,
-    MultiPipelinePlanRequestParameters,
-)
-from moveit.core.kinematic_constraints import construct_joint_constraint
+# from moveit.core.robot_state import RobotState
+# from moveit.planning import (
+#     MoveItPy,
+#     MultiPipelinePlanRequestParameters,
+# )
+# from moveit.core.kinematic_constraints import construct_joint_constraint
 
 import math
 import numpy as np
+from control_msgs.action import FollowJointTrajectory
+from trajectory_msgs.msg import JointTrajectoryPoint
+from action_msgs.msg import GoalStatus
+import rclpy.action
+from rclpy.action import ActionClient
 # Segment lengths (in centimeters)
 L1 = 10  # length of segment 1
 L2 = 50  # length of segment 2
@@ -72,7 +77,7 @@ class PickPlace(Node):
         z = msg.position.z
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pick Pose Goal: x={x}, y={y}, z={z}")
-        pick_object(zine_rover,zine_arm,logger,pose)
+        pick_object(logger,pose)
 
         msg2 = Bool()
         msg2.data = True
@@ -85,12 +90,44 @@ class PickPlace(Node):
         z = msg.position.z
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pose Goal: x={x}, y={y}, z={z}")
-        drop_object(zine_rover,zine_arm,logger,pose)
+        drop_object(logger,pose)
 
         msg2 = Bool()
         msg2.data = True
         self.publisher_.publish(msg2)
 
+class TrajectoryActionClient(Node):
+    def __init__(self):
+        super().__init__('trajectory_action_client')
+        self._action_client = ActionClient(
+            self,
+            FollowJointTrajectory,
+            'zine_arm_controller/follow_joint_trajectory')
+
+    def send_goal(self, trajectory, join_names):
+        goal_msg = FollowJointTrajectory.Goal()
+        goal_msg.trajectory.points = trajectory
+        goal_msg.trajectory.joint_names = join_names
+
+        self._action_client.wait_for_server()
+        self._send_goal_future = self._action_client.send_goal_async(goal_msg)
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.get_result_callback)
+    
+    def get_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.destroy_node()
 
 def fix_quadrants(solution):
     limits = list(joint_limits.values())
@@ -198,125 +235,114 @@ def zine_ik_solver(target_x, target_y, target_z):
         return np.radians(best_solution[:5])
 
     else:
-        return [0,0,0,0,0]
+        return [0.0,0.0,0.0,0.0,0.0]
     
 
-def plan_and_execute(
-    robot,
-    planning_component,
-    logger,
-    single_plan_parameters=None,
-    multi_plan_parameters=None,
-    sleep_time=0.0,
-):
-    """Helper function to plan and execute a motion."""
-    # plan to goal
+def plan_and_execute(joint_names, joint_values, logger, sleep_time=0.0):
+    """Helper function to plan and execute a motion using the action client."""
     logger.info("Planning trajectory")
-    if multi_plan_parameters is not None:
-        plan_result = planning_component.plan(
-            multi_plan_parameters=multi_plan_parameters
-        )
-    elif single_plan_parameters is not None:
-        plan_result = planning_component.plan(
-            single_plan_parameters=single_plan_parameters
-        )
-    else:
-        plan_result = planning_component.plan()
+    trajectory = []
+    point = JointTrajectoryPoint()
+    point.positions = joint_values
+    trajectory.append(point)
 
-    # execute the plan
-    if plan_result:
-        logger.info("Executing plan")
-        robot_trajectory = plan_result.trajectory
-        robot.execute(robot_trajectory, controllers=[])
-    else:
-        logger.error("Planning failed")
+    action_client = TrajectoryActionClient()
+
+    action_client.send_goal(trajectory, joint_names)
+
+    rclpy.spin(action_client)
 
     time.sleep(sleep_time)
 
-def move_to_pose(zine_rover,zine_arm,logger,pose):
     
-    zine_arm.set_start_state_to_current_state()
-    robot_model = zine_rover.get_robot_model()
-    robot_state = RobotState(robot_model)
+def move_to_pose(logger,pose):
+    
+    # zine_arm.set_start_state_to_current_state()
+    # robot_model = zine_rover.get_robot_model()
+    # robot_state = RobotState(robot_model)
     
     x = pose['x']
     y = pose['y']
     z = pose['z']
 
     joint_ik_values = zine_ik_solver(x,y,z)
-    joint_values = {
-        "joint_0": joint_ik_values[0],
-        "joint1": joint_ik_values[1],
-        "joint2": joint_ik_values[2],
-        "joint3": joint_ik_values[3],
-        "joint4": joint_ik_values[4],
-    }
+    joint_names = ["joint_0", "joint1", "joint2", "joint3", "joint4"]
+    joint_values = [
+        joint_ik_values[0],
+        joint_ik_values[1],
+        joint_ik_values[2],
+        joint_ik_values[3],
+        joint_ik_values[4],
+    ]
 
-    robot_state.joint_positions = joint_values
-    joint_constraint = construct_joint_constraint(
-        robot_state=robot_state,
-        joint_model_group=zine_rover.get_robot_model().get_joint_model_group("zine_arm"),
-    )
-    zine_arm.set_goal_state(motion_plan_constraints=[joint_constraint])
+    # robot_state.joint_positions = joint_values
+    # joint_constraint = construct_joint_constraint(
+    #     robot_state=robot_state,
+    #     joint_model_group=zine_rover.get_robot_model().get_joint_model_group("zine_arm"),
+    # )
+    # zine_arm.set_goal_state(motion_plan_constraints=[joint_constraint])
 
-    plan_and_execute(zine_rover, zine_arm, logger, sleep_time=5)
+    plan_and_execute(joint_names, joint_values, logger, sleep_time=5.0)
+
+    return joint_names, joint_values
 
 
 
-def pick_object(zine_rover,zine_arm,logger,pose):
+def pick_object(logger,pose):
 
     #implement approcah near object
     pose['x']-=0.05
-    move_to_pose(zine_rover,zine_arm,logger,pose)
+    joint_names, joint_values = move_to_pose(logger,pose)
     logger.info("Arm reached for approaching position")
 
     #implment approach at object
     pose['x']+=0.05
-    move_to_pose(zine_rover,zine_arm,logger,pose)
+    joint_names, joint_values = move_to_pose(logger,pose)
     logger.info("Arm reached for gripping position")
 
     #implement gripping action 
 
     #implement move to ready state
-    zine_arm.set_start_state_to_current_state()
-    zine_arm.set_goal_state(configuration_name="ready")
-    plan_and_execute(zine_rover, zine_arm, logger, sleep_time=5)
+    # zine_arm.set_start_state_to_current_state()
+    # zine_arm.set_goal_state(configuration_name="ready")
+    
+    plan_and_execute( joint_names, joint_values, logger, sleep_time=5)
     logger.info("Arm reached ready state")
 
 
-def drop_object(zine_rover,zine_arm,logger,pose):
+def drop_object(logger,pose):
 
     #implement approcah near object
     pose['x']-=0.05
-    move_to_pose(zine_rover,zine_arm,logger,pose)
+    move_to_pose(logger,pose)
     logger.info("Arm reached for approaching position")
 
     #implment approach at object
     pose['x']+=0.05
-    move_to_pose(zine_rover,zine_arm,logger,pose)
+    move_to_pose(logger,pose)
     logger.info("Arm reached for gripping position")
 
     #implement dropping action 
 
     #implement move to ready state
-    zine_arm.set_start_state_to_current_state()
-    zine_arm.set_goal_state(configuration_name="ready")
+    # zine_arm.set_start_state_to_current_state()
+    # zine_arm.set_goal_state(configuration_name="ready")
 
 
 def main():
 
     rclpy.init()
 
-    global zine_rover
-    global zine_arm
+    # global zine_rover
+    # global zine_arm
     global logger
 
     logger = get_logger("moveit_py.pose_goal")
 
     # instantiate MoveItPy instance and get planning component
 
-    zine_rover = MoveItPy(node_name="moveit_py")
-    zine_arm = zine_rover.get_planning_component("zine_arm")
+    # zine_rover = MoveItPy(node_name="moveit_py")
+    # zine_arm = zine_rover.get_planning_component("zine_arm")
     logger.info("MoveItPy instance created")
 
     pick_n_place_node = PickPlace()

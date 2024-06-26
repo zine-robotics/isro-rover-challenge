@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>base_station</name>
+  <version>0.0.0</version>
+  <description>base_station</description>
+  <maintainer email="zine.nitj@gmail.com">Priyansh</maintainer>
+  <license>Apache-2.0</license>
+
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>rclpy_action</exec_depend>
+  <exec_depend>time</exec_depend>
+  <exec_depend>math</exec_depend>
+  <exec_depend>pygame</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>threading</exec_depend>
+  <exec_depend>numpy</exec_depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

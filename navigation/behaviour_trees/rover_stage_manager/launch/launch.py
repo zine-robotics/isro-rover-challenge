@@ -18,17 +18,17 @@ def generate_launch_description():
         output='screen'
     )
 
-    trajectory_action_server = Node(
-        package='follow_joint_trajectory_server',
-        executable='trajectory_action_server',
-        output='screen',
-    )
+    # trajectory_action_server = Node(
+    #     package='follow_joint_trajectory_server',
+    #     executable='trajectory_action_server',
+    #     output='screen',
+    # )
 
-    joint_state_publisher = Node(
-        package='follow_joint_trajectory_server',  # Replace with your package name
-        executable='joint_state_publisher',  # Replace with your script name
-        output='screen'
-    )
+    # joint_state_publisher = Node(
+    #     package='follow_joint_trajectory_server',  # Replace with your package name
+    #     executable='joint_state_publisher',  # Replace with your script name
+    #     output='screen'
+    # )
 
     behaviour_tree_launch = Node(
         package='rover_stage_manager', 
@@ -56,8 +56,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         socket_server_launch,
-        trajectory_action_server,
-        joint_state_publisher,
+        # trajectory_action_server,
+        # joint_state_publisher,
         calibration_launch,
         mandatory_wpf_launch,
         pickup_object_launch,

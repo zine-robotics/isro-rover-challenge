@@ -37,8 +37,8 @@ class WaypointNavigate(py_trees.behaviour.Behaviour):
         self.node.get_logger().info(f"Waypoints Set To: {waypoint_poses}")
         for wp_x, wp_y in waypoint_poses:
             pose = Pose()
-            pose.position.x = wp_x
-            pose.position.y = wp_y
+            pose.position.x = wp_x - 0.45
+            pose.position.y = wp_y + 0.5
             pose.position.z = 0.0
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0

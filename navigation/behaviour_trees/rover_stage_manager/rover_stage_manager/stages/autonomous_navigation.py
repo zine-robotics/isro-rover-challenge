@@ -20,7 +20,7 @@ class AutonomousNavigate(py_trees.behaviour.Behaviour):
 
         self.action_client = ActionClient(self.node, NavigateToPose, 'navigate_to_pose')
         while not self.action_client.wait_for_server(timeout_sec=5):
-            self.logger.error(f"{self.name} waiting for action server...")
+            self.node.get_logger().error(f"{self.name} waiting for action server...")
 
     def initialise(self):
         self.node.get_logger().info("Autonomous Navigation Initialise")

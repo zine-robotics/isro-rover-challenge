@@ -13,6 +13,6 @@ isaac_ros_common
 isaac_ros_nvblox
 realsense-ros
 
-models
+new_cylinder_pose_b.pt
 
 archive

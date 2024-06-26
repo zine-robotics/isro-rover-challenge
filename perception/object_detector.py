@@ -8,6 +8,7 @@ import cv2
 from ultralytics import YOLO
 import pyrealsense2 as rs
 from geometry_msgs.msg import Pose
+from interpolation import interpolate_predicted
 
 model = YOLO("/home/zine/final_bot/isro-rover-challenge/perception/models/cylinder_augument_l.pt")
 threshold = 0.5
@@ -39,6 +40,7 @@ class ImageProcessor(Node):
             10)
         
         self.publisher_ = self.create_publisher(Pose, 'object_pose', 10)
+        self.pick_pose_publisher_ = self.create_publisher(Pose, 'final_pick_pose', 10)
         
         print("OBJECT DETECTOR NODE STARTED")
         
@@ -135,6 +137,13 @@ class ImageProcessor(Node):
                         self.get_logger().warn("no key points detected")
 
                     self.publisher_.publish(pose_msg)
+                    #convert to cm
+                    pose_msg.position.x = pose_msg.position.x*100
+                    pose_msg.position.y = pose_msg.position.y*100
+                    pose_msg.position.z = pose_msg.position.z*100
+                    pose_msg.position.x, pose_msg.position.y = interpolate_predicted(pose_msg.position.x, pose_msg.position.y)
+                    self.pick_pose_publisher_.publish(pose_msg)
+
 
             self.draw_on_frame(color_image)
             # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
