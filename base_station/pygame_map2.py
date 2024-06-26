@@ -2,7 +2,7 @@ import pygame
 import sys
 
 import numpy as np
-import seaborn as sns
+# import seaborn as sns
 import matplotlib.pyplot as plt
 
 from scipy.ndimage import gaussian_filter
@@ -121,7 +121,7 @@ def draw_heatmap():
     #np.savetxt('inp.txt', costmap)
     #x = np.loadtxt('inp.txt')
 
-    sns.heatmap(costmap)
+    # sns.heatmap(costmap)
     plt.xlabel('X Axis')
     plt.ylabel('Y Axis')
     plt.show()
@@ -132,6 +132,12 @@ def calculate_angle(p1, p2):
     angle = np.arctan2(y2 - y1, x2 - x1)
     return angle
 
+def draw_button(screen, rect, text):
+    pygame.draw.rect(screen, BLACK, rect)
+    font = pygame.font.SysFont(None, 30)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect(center=rect.center)
+    screen.blit(text_surface, text_rect)
 
 def setwaypoints():
     pygame.init()
@@ -142,53 +148,105 @@ def setwaypoints():
     canvas_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA, 32)
     canvas_surface = canvas_surface.convert_alpha()
 
-    
-    # cost_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA, 32)
-    # cost_surface = cost_surface.convert_alpha()
-    # Main loop
+    button_rect = pygame.Rect(screen_width - 110, 60, 100, 50)
+
     while True:
-        
         for event in pygame.event.get():
-            
             if event.type == pygame.QUIT:
                 print(saved_coords)
-                # pygame.quit()
                 return saved_coords
-                # sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                pos = (pos[0]/100, -pos[1]/100)
-                saved_coords.append(pos)
+                if button_rect.collidepoint(pos):
+                    print("Saved:", saved_coords)
+                    return saved_coords
+                else:
+                    pos = (pos[0]/100, -pos[1]/100)  # Convert to meters
+                    saved_coords.append(pos)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_u:
-                    if undo_surfaces:
-                        canvas_surface = undo_surfaces.pop()
+                    if saved_coords:
                         saved_coords.pop()
-        
-        screen.blit(map_surface, (0, 0))
-        for id, tag, coord  in coord_list:
-            center_x = int(coord[0])  # Scale coordinates
-            center_y = -int(coord[1])
-            
-            text_surface = font.render(str(id), True, BLACK)
-            text_rect = text_surface.get_rect(center=(center_x, center_y))
-            screen.blit(text_surface, text_rect)
-        
-        screen.blit(canvas_surface, (0, 0))
 
-        if len(saved_coords) > 2:
-            pygame.draw.lines(screen, BLACK, False, saved_coords, 10)
+        screen.blit(map_surface, (0, 0))
+
+        # Draw saved waypoints and lines connecting them
+        if saved_coords:
+            # Convert back to pixels for drawing
+            pixel_coords = [(int(x * 100), int(-y * 100)) for x, y in saved_coords]
+            for coord in pixel_coords:
+                pygame.draw.circle(screen, LINECOLOR, coord, int(0.7 * 100), 2)  # 0.7 meters to pixels
+            if len(pixel_coords) > 1:
+                pygame.draw.lines(screen, LINECOLOR, False, pixel_coords, 2)
 
         pos = pygame.mouse.get_pos()
         pygame.draw.circle(screen, LINECOLOR, pos, 50, 1)
-        
-        # cost_surface.fill(RED)
-        # screen.blit(cost_surface, (0,0))
+
+        draw_button(screen, button_rect, "Save")
 
         pygame.display.flip()
         pygame.time.Clock().tick(60)
+
+
+
+# def setwaypoints():
+#     pygame.init()
+#     saved_coords = []
+#     screen = pygame.display.set_mode((screen_width, screen_height))
+#     pygame.display.set_caption("ISRO Map")
+
+#     canvas_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA, 32)
+#     canvas_surface = canvas_surface.convert_alpha()
+
+    
+#     # cost_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA, 32)
+#     # cost_surface = cost_surface.convert_alpha()
+#     # Main loop
+#     while True:
+        
+#         for event in pygame.event.get():
+            
+#             if event.type == pygame.QUIT:
+#                 print(saved_coords)
+#                 # pygame.quit()
+#                 return saved_coords
+#                 # sys.exit()
+
+#             if event.type == pygame.MOUSEBUTTONDOWN:
+#                 pos = pygame.mouse.get_pos()
+#                 pos = (pos[0]/100, -pos[1]/100)
+#                 saved_coords.append(pos)
+
+#             if event.type == pygame.KEYDOWN:
+#                 if event.key == pygame.K_u:
+#                     if undo_surfaces:
+#                         canvas_surface = undo_surfaces.pop()
+#                         saved_coords.pop()
+        
+#         screen.blit(map_surface, (0, 0))
+#         for id, tag, coord  in coord_list:
+#             center_x = int(coord[0])  # Scale coordinates
+#             center_y = -int(coord[1])
+            
+#             text_surface = font.render(str(id), True, BLACK)
+#             text_rect = text_surface.get_rect(center=(center_x, center_y))
+#             screen.blit(text_surface, text_rect)
+        
+#         screen.blit(canvas_surface, (0, 0))
+
+#         if len(saved_coords) > 2:
+#             pygame.draw.lines(screen, BLACK, False, saved_coords, 10)
+
+#         pos = pygame.mouse.get_pos()
+#         pygame.draw.circle(screen, LINECOLOR, pos, 50, 1)
+        
+#         # cost_surface.fill(RED)
+#         # screen.blit(cost_surface, (0,0))
+
+#         pygame.display.flip()
+#         pygame.time.Clock().tick(60)
 
 def setnav():
     pygame.init()
