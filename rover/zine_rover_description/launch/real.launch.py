@@ -36,7 +36,7 @@ def generate_launch_description():
         executable='ekf_node',
         name='ekf_filter_node',
         output='screen',
-        parameters=[os.path.join(pkg_share, 'config/ekf_wo_encoder.yaml'), {'use_sim_time': LaunchConfiguration('use_sim_time')}],
+        parameters=[os.path.join(pkg_share, 'config/ekf_wo_encoder.yaml')],
         remappings=[('/odometry/filtered','/odom')]
     )
 
@@ -50,7 +50,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
                                             description='Flag to enable use_sim_time'),
 
-        robot_state_publisher_node,
+        # robot_state_publisher_node,
         robot_localization_node,
         twist_mux,
     

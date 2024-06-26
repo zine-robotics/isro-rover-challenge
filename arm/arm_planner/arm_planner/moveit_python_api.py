@@ -247,7 +247,7 @@ def plan_and_execute(joint_names, joint_values, logger, sleep_time=0.0):
     trajectory.append(point)
 
     action_client = TrajectoryActionClient()
-
+    logger.info(f"{joint_names}")
     action_client.send_goal(trajectory, joint_names)
 
     rclpy.spin(action_client)

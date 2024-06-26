@@ -38,7 +38,7 @@ class MapServer(Node):
         self.objects = []
 
         qos_profile = QoSProfile(depth=3,durability=QoSDurabilityPolicy.TRANSIENT_LOCAL)
-        self.yaml_filename = self.declare_parameter('yaml_filename', '/workspaces/isaac_ros-dev/src/navigation/map_server/config/map.yaml').get_parameter_value().string_value
+        self.yaml_filename = self.declare_parameter('yaml_filename', '/workspaces/isaac_ros-dev/src/isro-rover-challenge/navigation/map_server/config/map.yaml').get_parameter_value().string_value
         self.frame_id = self.declare_parameter('frame_id', 'odom').get_parameter_value().string_value
         self.inflation = 10#self.declare_parameter('inflation', 10).get_parameter_value()
 
