@@ -44,10 +44,10 @@ class TwistToArduinoNode(Node):
 
         linear_vel = msg.linear.x
         angular_vel = msg.angular.z
-        right_linear_vel = linear_vel - (angular_vel*0.70/2)
-        left_angular_vel =linear_vel - (angular_vel*0.70/2) # Apply the same scaling if needed
+        right_linear_vel = linear_vel + (angular_vel*0.70/2)
+        left_linear_vel =linear_vel - (angular_vel*0.70/2) # Apply the same scaling if needed
 
-        self.get_logger().info(f"Linear velocity: {right_linear_vel}, Angular velocity: {left_angular_vel}")
+        self.get_logger().info(f"Linear velocity: {right_linear_vel}, Angular velocity: {left_linear_vel}")
 
         # Construct the message to send
         # Assuming mapping to the motors is as follows:
@@ -55,9 +55,9 @@ class TwistToArduinoNode(Node):
         r1 = right_linear_vel
         r2 = right_linear_vel
         r3 = right_linear_vel
-        l1 = left_angular_vel
-        l2 = left_angular_vel
-        l3 = left_angular_vel
+        l1 = left_linear_vel
+        l2 = left_linear_vel
+        l3 = left_linear_vel
 
         message = f"R1:{r1:.2f} R2:{r2:.2f} R3:{r3:.2f} L1:{l1:.2f} L2:{l2:.2f} L3:{l3:.2f}\n"
         self.ser.write(message.encode())
