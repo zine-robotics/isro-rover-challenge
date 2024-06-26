@@ -13,7 +13,7 @@ ekf_filter_node:
         two_d_mode: false
 
 # Whether to publish the acceleration state. Defaults to false if unspecified.
-        publish_acceleration: true
+        publish_acceleration: false
 
 # Whether to broadcast the transformation over the /tf topic. Defaults to true if unspecified.
         publish_tf: true

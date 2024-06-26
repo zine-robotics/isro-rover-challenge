@@ -8,9 +8,8 @@ import cv2
 from ultralytics import YOLO
 import pyrealsense2 as rs
 from geometry_msgs.msg import Pose
-from interpolation import interpolate_predicted
-
-model = YOLO("/home/zine/final_bot/isro-rover-challenge/perception/models/cylinder_augument_l.pt")
+from rclpy.qos import QoSProfile, DurabilityPolicy,ReliabilityPolicy
+model = YOLO("/home/mahaveer/outside/src/isro-rover-challenge/perception/model/cylinder_optimiser_l.pt")
 threshold = 0.5
 width = 640
 height = 480
@@ -20,26 +19,34 @@ class ImageProcessor(Node):
 
     def __init__(self):
         super().__init__('image_processor')
-        
+        qos_profile = QoSProfile(
+            depth=10,  # Queue size
+            durability=DurabilityPolicy.VOLATILE,
+            reliability=ReliabilityPolicy.BEST_EFFORT
+        )
         self.rgb_subscriber = self.create_subscription(
             Image,
-            '/front/stereo_camera/left/rgb',
+            '/camera/color/image_raw',
             self.rgb_callback,
-            10)
+            qos_profile
+            )
 
         self.depth_subscriber = self.create_subscription(
             Image,
-            '/front/stereo_camera/left/depth',
+            '/camera/realsense_splitter_node/output/depth',
             self.depth_callback,
-            10)
+            qos_profile
+            )
         
         self.camera_info_subscriber = self.create_subscription(
             CameraInfo,
-            '/front/stereo_camera/left/camera_info',
+            '/camera/depth/camera_info',
             self.camera_info_callback,
-            10)
+            qos_profile
+            )
         
         self.publisher_ = self.create_publisher(Pose, 'object_pose', 10)
+        
         self.pick_pose_publisher_ = self.create_publisher(Pose, 'final_pick_pose', 10)
         
         print("OBJECT DETECTOR NODE STARTED")
@@ -49,8 +56,7 @@ class ImageProcessor(Node):
         self.color_image = None
         self.depth_image = None
 
-        #call loop function
-        # self.process_frames()
+        #call loop function        # self.process_frames()
 
 
     def camera_info_callback(self, msg):
@@ -82,7 +88,7 @@ class ImageProcessor(Node):
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
 
-    def process_frames(self,depth_threshold=800):
+    def process_frames(self,depth_threshold=2000):
       
         
         if self.color_image is not None and self.depth_image is not None and self.intrinsic is not None:
@@ -137,13 +143,11 @@ class ImageProcessor(Node):
                         self.get_logger().warn("no key points detected")
 
                     self.publisher_.publish(pose_msg)
-                    #convert to cm
                     pose_msg.position.x = pose_msg.position.x*100
                     pose_msg.position.y = pose_msg.position.y*100
                     pose_msg.position.z = pose_msg.position.z*100
-                    pose_msg.position.x, pose_msg.position.y = interpolate_predicted(pose_msg.position.x, pose_msg.position.y)
-                    self.pick_pose_publisher_.publish(pose_msg)
 
+                    self.pick_pose_publisher_.publish(pose_msg)
 
             self.draw_on_frame(color_image)
             # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
@@ -244,7 +248,7 @@ class ImageProcessor(Node):
         return rvec,projected_points
 
     def get_world_coordinated(self,depth_image,x,y):
-        depth_value_in_meters = depth_image[int(y), int(x)]/1000 # Convert to meters
+        depth_value_in_meters = depth_image[int(y-20), int(x)]/1000 # Convert to meters
         if depth_value_in_meters ==0.0:
             depth_value_in_meters = 0.001
         # Project depth pixel to 3D point in camera coordinates

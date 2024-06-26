@@ -34,10 +34,10 @@ depth_info_qos: "SENSOR_DATA"
 
 infra_qos: "SENSOR_DATA"
 
-enable_accel: false
+enable_accel: true
 enable_color: true
 enable_depth: true
-enable_gyro: false
+enable_gyro: true
 enable_infra1: true
 enable_infra2: true
 
@@ -49,3 +49,5 @@ pointcloud_texture_stream: RS2_STREAM_ANY
 
 enable_sync: false
 align_depth: false
+
+unite_imu_method: 2

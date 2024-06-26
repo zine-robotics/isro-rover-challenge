@@ -32,10 +32,6 @@ def generate_launch_description():
 
     # Launch Arguments
 
-    flatten_odometry_to_2d_arg = DeclareLaunchArgument(
-        'flatten_odometry_to_2d', default_value='False',
-        description='Whether to flatten the odometry to 2D (camera only moving on XY-plane).')
-    
     global_frame = LaunchConfiguration('global_frame',
                                        default='odom')
 
@@ -48,6 +44,16 @@ def generate_launch_description():
         executable='component_container_mt',
         output='screen')
 
+
+    # Realsense
+    realsense_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            bringup_dir, 'launch', 'sensors', 'realsense.launch.py')]),
+        launch_arguments={
+            'attach_to_shared_component_container': 'True',
+            'component_container_name': shared_container_name}.items(),
+       )
+    
     # Nav2
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(
@@ -70,7 +76,6 @@ def generate_launch_description():
             bringup_dir, 'launch', 'perception', 'vslam.launch.py')]),
         launch_arguments={'output_odom_frame_name': global_frame, 
                           'setup_for_realsense': 'True',
-                          'run_odometry_flattening': LaunchConfiguration('flatten_odometry_to_2d'),
                           'attach_to_shared_component_container': 'True',
                           'component_container_name': shared_container_name}.items())
 
@@ -83,15 +88,22 @@ def generate_launch_description():
                           'attach_to_shared_component_container': 'True',
                           'component_container_name': shared_container_name}.items())
 
-    #
+    # Rviz
+    rviz_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            bringup_dir, 'launch', 'rviz', 'rviz.launch.py')]),
+        launch_arguments={
+            'config_name': 'isaac_sim_example.rviz',
+            'global_frame': global_frame}.items(),
+       )
  
 
     return LaunchDescription([
   
-        flatten_odometry_to_2d_arg,
         shared_container,
         realsense_launch,
         vslam_launch,
-        nvblox_launch,
-        nav2_launch,
+        # nvblox_launch,
+        # nav2_launch,
+        rviz_launch,
         ])
