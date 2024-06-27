@@ -88,7 +88,7 @@ class ImageProcessor(Node):
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
 
-    def process_frames(self,depth_threshold=2000):
+    def process_frames(self,depth_threshold=1000):
       
         
         if self.color_image is not None and self.depth_image is not None and self.intrinsic is not None:
@@ -144,7 +144,7 @@ class ImageProcessor(Node):
 
                     self.publisher_.publish(pose_msg)
                     pose_msg.position.x = pose_msg.position.x*100
-                    pose_msg.position.y = pose_msg.position.y*100
+                    pose_msg.position.y = pose_msg.position.y*100 
                     pose_msg.position.z = pose_msg.position.z*100
 
                     self.pick_pose_publisher_.publish(pose_msg)

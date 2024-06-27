@@ -86,10 +86,11 @@ class FollowJointTrajectoryServer(Node):
                 # self.get_logger().info(f'Received feedback: {self._received_feedback.data}')
                 goal_handle.publish_feedback(feedback_msg)
         
-        goal_handle.success()
+        # goal_handle.success()
         self.get_logger().info('Goal succeeded!')
 
         result = FollowJointTrajectory.Result()
+        result.success = True
         result.error_code = 0  # Assume success for simplicity
         return result
 

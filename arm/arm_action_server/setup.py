@@ -25,7 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'arm_trajectory_action_server = arm_action_server.trajectory_action_server:main',
-            'arm_test_client = arm_action_server.test_client:main'
+            'arm_test_client = arm_action_server.test_client:main',
+            'adding_gripper = arm_action_server.adding_gripper:main'
         ],
     },
 )

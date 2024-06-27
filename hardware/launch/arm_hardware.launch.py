@@ -9,7 +9,7 @@ def generate_launch_description():
             package='hardware',
             executable='arm_serial_node',
             output='screen',
-            parameters=[{"serial_port":"1"}]
+            parameters=[{"serial_port":"0"}]
         ),
 
         Node(

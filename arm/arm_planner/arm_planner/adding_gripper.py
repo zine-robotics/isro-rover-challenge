@@ -29,10 +29,10 @@ from action_msgs.msg import GoalStatus
 import rclpy.action
 from rclpy.action import ActionClient
 # Segment lengths (in centimeters)
-L1 = 10  # length of segment 1
-L2 = 50  # length of segment 2
-L3 = 40  # length of segment 3
-L4 = 10  # length of segment 4
+L1 = 30  # length of segment 1
+L2 = 53  # length of segment 2
+L3 = 49  # length of segment 3
+L4 = 0  # length 10of segment 4
 L5 = 0  # length of segment 5 (end effector)
 
 # Joint limits (in degrees)
@@ -72,9 +72,9 @@ class PickPlace(Node):
 
     def pick_pose_goal_callback(self, msg):
         # Process received pose goal message
-        x = msg.position.x
-        y = msg.position.y
-        z = msg.position.z
+        x = msg.position.x + 20
+        y = -(msg.position.y+2)
+        z = msg.position.z + 10
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pick Pose Goal: x={x}, y={y}, z={z}")
         pick_object(logger,pose)
@@ -229,8 +229,8 @@ def zine_ik_solver(target_x, target_y, target_z):
         best_solution[2] += 90
         best_solution = fix_quadrants(best_solution)
         best_solution[3] = 0.0
-        best_solution[4] = 0.0
-        # best_solution[4] = best_solution[1] + best_solution[2]
+        # best_solution[4] = 0.0
+        best_solution[4] = best_solution[1] + best_solution[2]
 
         return np.radians(best_solution[:5])
 
@@ -264,7 +264,6 @@ def move_to_pose(logger,pose, gripper_close=0):
     x = pose['x']
     y = pose['y']
     z = pose['z']
-
     joint_ik_values = zine_ik_solver(x,y,z)
     joint_names = ["joint_0", "joint1", "joint2", "joint3", "joint4", "joint5"]
     joint_values = [
@@ -273,7 +272,7 @@ def move_to_pose(logger,pose, gripper_close=0):
         joint_ik_values[2],
         joint_ik_values[3],
         joint_ik_values[4],
-        gripper_close
+        0.0
     ]
 
     # robot_state.joint_positions = joint_values
@@ -291,41 +290,35 @@ def move_to_pose(logger,pose, gripper_close=0):
 
 def pick_object(logger,pose):
 
-    #implement approcah near object
-    pose['x']-=0.05
-    joint_names, joint_values = move_to_pose(logger,pose,gripper_close=0.0)
+       #implement approcah near object
+    pose['x']-=3
+    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for approaching position")
-
+    time.sleep(5)
     #implment approach at object
-    pose['x']+=0.05
-    joint_names, joint_values = move_to_pose(logger,pose,gripper_close=0.0)
+    pose['x']+=10
+    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for gripping position")
-    #implement gripping action 
-
-    #implement move to ready state
-    # zine_arm.set_start_state_to_current_state()
-    # zine_arm.set_goal_state(configuration_name="ready")
-    
-    joint_values[5] = 1.0 # close gripper
-    
+    time.sleep(5)
+    #implement dropping action 
+    joint_values = [0.0,0.0,0.0,0.0,0.0,0.0] # open gripper
     plan_and_execute( joint_names, joint_values, logger, sleep_time=5)
-    logger.info("Arm reached ready state")
 
 
 def drop_object(logger,pose):
 
     #implement approcah near object
-    pose['x']-=0.05
+    pose['x']-=10
     joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for approaching position")
-
+    time.sleep(5)
     #implment approach at object
-    pose['x']+=0.05
+    pose['x']+=10
     joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for gripping position")
-
+    time.sleep(5)
     #implement dropping action 
-    joint_values[5] = 0.0 # open gripper
+    joint_values = [0.0,0.0,0.0,0.0,0.0,0.0] # open gripper
     plan_and_execute( joint_names, joint_values, logger, sleep_time=5)
 
     #implement move to ready state

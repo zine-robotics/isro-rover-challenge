@@ -12,13 +12,13 @@ class ArduinoCommunicationNode(Node):
 
         #choose the required port 
         if serial_port == '0':
-            serial_port_str = '/dev/ttyACM0'
+            serial_port_str = '/dev/ttyUSB0'
         else:
-            serial_port_str = '/dev/ttyACM1'
+            serial_port_str = '/dev/ttyUSB1'
         
         # Initialize serial connection with retries
-        self.serial_port = serial_port_str  # Change as needed
-        self.array_length = 5
+        self.serial_port = '/dev/ttyUSB0'  # Change as needed
+        self.array_length = 6
         self.baud_rate = 115200  # Change as needed
         self.ser: serial.Serial = None
         self.reconnect_delay = 5  # Delay between reconnection attempts in seconds
@@ -66,6 +66,7 @@ class ArduinoCommunicationNode(Node):
             return
 
         self.send_array = msg.data
+        # self.send_array = [-2, -83, -4, 0, 0, 0]
         print('self.send_array', self.send_array)
         if len(self.send_array) != self.array_length:
             self.get_logger().warn("Array must have exactly", self.array_length,"integers.")
@@ -75,7 +76,7 @@ class ArduinoCommunicationNode(Node):
 
         self.ser.write(arr_str.encode())
         time.sleep(0.1)  # Wait for the Arduino to process the data
-        print('debug 1')
+        self.get_logger().info(f"Array Sent: {arr_str}")
         return
 
     def publish_feedback(self):
@@ -104,7 +105,6 @@ class ArduinoCommunicationNode(Node):
             response_msg = Int32MultiArray()
             response_msg.data = self.receive_array
             self.publisher_.publish(response_msg)
-            self.get_logger().info(f"Sent data: {self.receive_array}")
 
 def main(args=None):
     rclpy.init(args=args)
