@@ -18,11 +18,11 @@ class TestFollowJointTrajectoryClient(Node):
         # Define the trajectory points
         point = JointTrajectoryPoint()
         # point.positions = [-0.523599, 0.523599, -0.523599, -0.523599, -0.523599]
-        point.positions = [0.0, 0.0, 0.0, 0.0, 0.0]
+        point.positions = [0.0, -1.535, 0.0, 0.0, 0.0,0.0]
         point.time_from_start.sec = 1
 
         goal_msg.trajectory.points.append(point)
-        goal_msg.trajectory.joint_names = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4']
+        goal_msg.trajectory.joint_names = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4','joint5']
         
         self._action_client.wait_for_server()
         self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)

@@ -40,9 +40,9 @@ class FollowJointTrajectoryServer(Node):
 
         # Original order of joint names
         original_order: list = goal_handle.request.trajectory.joint_names
-
+        self.get_logger().info(f'{original_order}')
         # Desired order of joint names
-        desired_order = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4', 'joint_5']
+        desired_order = ['joint_0', 'joint1', 'joint2', 'joint3', 'joint4', 'joint5']
 
         # Create a mapping from the joint names to their indices in the original order
         mapping = {joint_name: original_order.index(joint_name) for joint_name in desired_order}
@@ -86,11 +86,11 @@ class FollowJointTrajectoryServer(Node):
                 # self.get_logger().info(f'Received feedback: {self._received_feedback.data}')
                 goal_handle.publish_feedback(feedback_msg)
         
-        goal_handle.success()
+        # goal_handle.success()
         self.get_logger().info('Goal succeeded!')
-
+        goal_handle.succeed()
         result = FollowJointTrajectory.Result()
-        result.error_code = 0  # Assume success for simplicity
+        # result.success = True  # Assume success for simplicity
         return result
 
     def goal_callback(self, goal_handle):
@@ -109,8 +109,8 @@ def main(args=None):
     rclpy.init(args=args)
     node = FollowJointTrajectoryServer()
     rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    # node.destroy_node()
+    # rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

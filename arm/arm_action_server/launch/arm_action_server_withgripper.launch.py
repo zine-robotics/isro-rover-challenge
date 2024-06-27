@@ -8,10 +8,5 @@ def generate_launch_description():
             package='arm_action_server',
             executable='adding_gripper',
             output='screen',
-        ),
-        Node(
-            package='arm_action_server',
-            executable='arm_test_client',
-            output='screen',
         )
     ])
