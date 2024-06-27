@@ -31,9 +31,9 @@ from rclpy.action import ActionClient
 # Segment lengths (in centimeters)
 L1 = 30  # length of segment 1
 L2 = 53  # length of segment 2
-L3 = 53  # length of segment 3
-L4 = 7  # length of segment 4
-L5 = 5  # length of segment 5 (end effector)
+L3 = 49  # length of segment 3
+L4 = 0  # length 10of segment 4
+L5 = 0  # length of segment 5 (end effector)
 
 # Joint limits (in degrees)
 joint_limits = {
@@ -72,9 +72,9 @@ class PickPlace(Node):
 
     def pick_pose_goal_callback(self, msg):
         # Process received pose goal message
-        x = msg.position.x + 35
-        y = -(msg.position.y + 3)
-        z = msg.position.z + 15
+        x = msg.position.x + 20
+        y = -(msg.position.y+2)
+        z = msg.position.z + 10
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pick Pose Goal: x={x}, y={y}, z={z}")
         pick_object(logger,pose)
@@ -291,7 +291,7 @@ def move_to_pose(logger,pose, gripper_close=0):
 def pick_object(logger,pose):
 
        #implement approcah near object
-    pose['x']-=20
+    pose['x']-=3
     joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for approaching position")
     time.sleep(5)

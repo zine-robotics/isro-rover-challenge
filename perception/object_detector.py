@@ -143,7 +143,7 @@ class ImageProcessor(Node):
                         self.get_logger().warn("no key points detected")
 
                     self.publisher_.publish(pose_msg)
-                    pose_msg.position.x = pose_msg.position.x*100 + 20
+                    pose_msg.position.x = pose_msg.position.x*100
                     pose_msg.position.y = pose_msg.position.y*100 
                     pose_msg.position.z = pose_msg.position.z*100
 
