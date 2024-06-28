@@ -18,7 +18,7 @@ class TestFollowJointTrajectoryClient(Node):
         # Define the trajectory points
         point = JointTrajectoryPoint()
         # point.positions = [-0.523599, 0.523599, -0.523599, -0.523599, -0.523599]
-        point.positions = [0.0, -1.535, 0.0, 0.0, 0.0,0.0]
+        point.positions = [0.0, -0.57,0.0, 0.0, 0.0, 0.0,2.0]
         point.time_from_start.sec = 1
 
         goal_msg.trajectory.points.append(point)

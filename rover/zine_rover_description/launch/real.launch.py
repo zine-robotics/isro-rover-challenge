@@ -39,7 +39,6 @@ def generate_launch_description():
         parameters=[os.path.join(pkg_share, 'config/ekf_wo_encoder.yaml')],
         remappings=[('/odometry/filtered','/odom')]
     )
-
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='gui', default_value='True',
                                             description='Flag to enable joint_state_publisher_gui'),
@@ -50,8 +49,8 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
                                             description='Flag to enable use_sim_time'),
 
-        # robot_state_publisher_node,
-        robot_localization_node,
+        robot_state_publisher_node,
+        # robot_localization_node,
         twist_mux,
     
     ])

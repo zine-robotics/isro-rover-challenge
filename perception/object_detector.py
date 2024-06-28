@@ -9,6 +9,7 @@ from ultralytics import YOLO
 import pyrealsense2 as rs
 from geometry_msgs.msg import Pose
 from rclpy.qos import QoSProfile, DurabilityPolicy,ReliabilityPolicy
+from error_correction import error_corrector
 model = YOLO("/home/mahaveer/outside/src/isro-rover-challenge/perception/model/cylinder_optimiser_l.pt")
 threshold = 0.5
 width = 640
@@ -47,7 +48,7 @@ class ImageProcessor(Node):
         
         self.publisher_ = self.create_publisher(Pose, 'object_pose', 10)
         
-        self.pick_pose_publisher_ = self.create_publisher(Pose, 'final_pick_pose', 10)
+        # self.pick_pose_publisher_ = self.create_publisher(Pose, 'final_pick_pose', 10)
         
         print("OBJECT DETECTOR NODE STARTED")
         
@@ -141,13 +142,16 @@ class ImageProcessor(Node):
 
                     except:
                         self.get_logger().warn("no key points detected")
+                    
+                 
+                    # self.publisher_.publish(pose_msg)
 
-                    self.publisher_.publish(pose_msg)
                     pose_msg.position.x = pose_msg.position.x*100
                     pose_msg.position.y = pose_msg.position.y*100 
                     pose_msg.position.z = pose_msg.position.z*100
-
-                    self.pick_pose_publisher_.publish(pose_msg)
+                    pose_msg.position.x, pose_msg.position.y, pose_msg.position.z  = error_corrector(5,pose_msg.position.x, pose_msg.position.y,pose_msg.position.z)
+                    self.publisher_.publish(pose_msg)
+                    # self.pick_pose_publisher_.publish(pose_msg)
 
             self.draw_on_frame(color_image)
             # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)

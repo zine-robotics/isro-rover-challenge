@@ -3,18 +3,19 @@ from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from interfaces.action import Pickup
 from geometry_msgs.msg import PoseStamped, Twist, Pose
+from std_msgs.msg import Bool
 import time
 import numpy as np 
 
-class PickupObjectActionServer(Node):
+class DropObjectActionServer(Node):
     def __init__(self):
-        super().__init__('pickup_object')
+        super().__init__('drop_object')
         
         # Action Server
         self.action_server = ActionServer(
             self,
             Pickup,
-            'pickup_object',
+            'drop_object',
             self.execute_callback,
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback
@@ -29,7 +30,7 @@ class PickupObjectActionServer(Node):
         )
         
         self.pose_status_subscription = self.create_subscription(
-            bool,
+            Bool,
             'pose_status',
             self.pose_status_callback,
             1
@@ -38,7 +39,7 @@ class PickupObjectActionServer(Node):
         # Publisher for final object pose
         self.final_pose_publisher = self.create_publisher(
             Pose,
-            'final_object_pose',
+            'final_drop_pose',
             1
         )
 
@@ -54,6 +55,7 @@ class PickupObjectActionServer(Node):
         self.aligned = False
         self.published_final_pose = False
         self._goal_handle = None
+        self.drop_completed = False
 
         self.get_logger().info('Initialized Pick Up Object Action Server')
 
@@ -66,12 +68,12 @@ class PickupObjectActionServer(Node):
         return CancelResponse.ACCEPT
 
     def pose_callback(self, msg):
-        self.get_logger().info(f"{msg.pose}")
-        self.current_object_pose = msg.pose
+        self.get_logger().info(f"{msg.position}")
+        self.current_object_pose = msg
 
     def pose_status_callback(self, msg):
         self.get_logger().info('Received object pose status')
-        print(msg)
+        self.drop_completed = msg.data
 
     def get_final_object_pose(self):
         obj_pose_arr = []
@@ -133,14 +135,18 @@ class PickupObjectActionServer(Node):
         self._goal_handle = goal_handle
         self.object_position = goal_handle.request.object_position
 
-        #implementing align bot
-        while not self.aligned:
-            rclpy.spin_once(self)
-            self.align_bot()
+        # implementing align bot
+        # while not self.aligned:
+        #     rclpy.spin_once(self)
+        #     self.align_bot()
 
         self.get_logger().info('Bot aligned successfully.')
         
         self.get_final_object_pose()
+
+        while(1):
+            if self.drop_completed == True:
+                break
 
         goal_handle.succeed()
         
@@ -152,12 +158,15 @@ class PickupObjectActionServer(Node):
         if self.current_object_pose is not None:
             self.final_pose_publisher.publish(self.current_object_pose)
             self.get_logger().info('Published final object pose.')
+        
+        print(self.drop_completed)
+        return
 
 def main(args=None):
     rclpy.init(args=args)
-    pickup_action_server = PickupObjectActionServer()
-    rclpy.spin(pickup_action_server)
-    pickup_action_server.destroy_node()
+    drop_action_server = DropObjectActionServer()
+    rclpy.spin(drop_action_server)
+    drop_action_server.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

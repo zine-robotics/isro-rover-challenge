@@ -58,6 +58,9 @@ class FollowJointTrajectoryServer(Node):
 
         # Convert the reordered positions from radians to degrees and round to the nearest integer
         trajectory_msg.data = [int(math.degrees(pos)) for pos in reordered_positions]
+        if trajectory_msg.data[5] > 0:
+            trajectory_msg.data[5] = 1
+
 
         # Receive feedback from the subscribed topic
         while True:
@@ -106,11 +109,15 @@ class FollowJointTrajectoryServer(Node):
         self._received_feedback = msg
 
 def main(args=None):
+
     rclpy.init(args=args)
     node = FollowJointTrajectoryServer()
-    rclpy.spin(node)
-    # node.destroy_node()
-    # rclpy.shutdown()
 
+    while rclpy.ok():
+        rclpy.spin_once(node, timeout_sec=0.1)
+
+    # Clean up
+    node.destroy_node()
+    rclpy.shutdown()
 if __name__ == '__main__':
     main()
