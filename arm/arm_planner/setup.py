@@ -21,7 +21,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'moveit_python_api = arm_planner.moveit_python_api:main',
+            'arm_planner_api = arm_planner.arm_planner_api:main',
         ],
     },
 )

@@ -637,49 +637,49 @@
 <link name="camera_right_ir_optical_frame"></link>
 
 
-<joint name="r_wheel1_j" type="continuous">
+<joint name="r_wheel1_j" type="fixed">
   <origin xyz="0.265775 -0.109043 -0.092386" rpy="0 0 0"/>
   <parent link="right_leg1_link_1"/>
   <child link="r1_link_1"/>
   <axis xyz="0.0 1.0 0.0"/>
 </joint>
 
-<joint name="r_wheel2_j" type="continuous">
+<joint name="r_wheel2_j" type="fixed">
   <origin xyz="0.125838 -0.107878 -0.09617" rpy="0 0 0"/>
   <parent link="right_leg2_link_1"/>
   <child link="r2_link_1"/>
   <axis xyz="0.000315 1.0 -1.2e-05"/>
 </joint>
 
-<joint name="r_wheel3_j" type="continuous">
+<joint name="r_wheel3_j" type="fixed">
   <origin xyz="-0.258728 -0.109 -0.099403" rpy="0 0 0"/>
   <parent link="right_leg2_link_1"/>
   <child link="r3_link_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
-<joint name="l_back_j" type="continuous">
+<joint name="l_back_j" type="fixed">
   <origin xyz="0.030181 0.369196 0.335368" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="left_back_link_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
-<joint name="l_wheel3_j" type="continuous">
+<joint name="l_wheel3_j" type="fixed">
   <origin xyz="-0.258992 0.136 -0.098714" rpy="0 0 0"/>
   <parent link="left_leg2_link_1"/>
   <child link="l3_link_1"/>
   <axis xyz="-0.0 1.0 0.0"/>
 </joint>
 
-<joint name="l_wheel2_j" type="continuous">
+<joint name="l_wheel2_j" type="fixed">
   <origin xyz="0.125581 0.134879 -0.096505" rpy="0 0 0"/>
   <parent link="left_leg2_link_1"/>
   <child link="l2_link_1"/>
   <axis xyz="-0.000315 1.0 1.3e-05"/>
 </joint>
 
-<joint name="l_wheel1_j" type="continuous">
+<joint name="l_wheel1_j" type="fixed">
   <origin xyz="0.266431 0.1364 -0.090475" rpy="0 0 0"/>
   <parent link="left_leg1_link_1"/>
   <child link="l1_link_1"/>
@@ -795,91 +795,91 @@
   <limit upper="1.0" lower="-1.0" effort="10" velocity="100"/>
 </joint>
 
-<joint name="r_bar_ball_j" type="continuous">
+<joint name="r_bar_ball_j" type="fixed">
   <origin xyz="-0.010685 -0.287965 -0.002395" rpy="0 0 0"/>
   <parent link="diff_bar_1"/>
   <child link="r_ball_bar_1"/>
   <axis xyz="4.5e-05 -1.0 0.000823"/>
 </joint>
 
-<joint name="l_bar_ball_j" type="continuous">
+<joint name="l_bar_ball_j" type="fixed">
   <origin xyz="-0.010711 0.286699 -0.002868" rpy="0 0 0"/>
   <parent link="diff_bar_1"/>
   <child link="l_ball_bar_1"/>
   <axis xyz="-4.5e-05 1.0 -0.000823"/>
 </joint>
 
-<joint name="l_ball_hand_j" type="continuous">
+<joint name="l_ball_hand_j" type="fixed">
   <origin xyz="0.0 -0.007 6e-06" rpy="0 0 0"/>
   <parent link="l_ball_bar_1"/>
   <child link="l_diff_hand_1"/>
   <axis xyz="0.999698 1.2e-05 -0.024563"/>
 </joint>
 
-<joint name="r_ball_hand_j" type="continuous">
+<joint name="r_ball_hand_j" type="fixed">
   <origin xyz="0.0 0.007 -6e-06" rpy="0 0 0"/>
   <parent link="r_ball_bar_1"/>
   <child link="r_diff_hand_1"/>
   <axis xyz="0.999519 -1.2e-05 -0.031019"/>
 </joint>
 
-<joint name="l_hand_ball_j" type="continuous">
+<joint name="l_hand_ball_j" type="fixed">
   <origin xyz="0.003054 0.003009 -0.127845" rpy="0 0 0"/>
   <parent link="l_diff_hand_1"/>
   <child link="l_ball_leg_1"/>
   <axis xyz="0.999698 1.2e-05 -0.024563"/>
 </joint>
 
-<joint name="r_hand_ball_j" type="continuous">
+<joint name="r_hand_ball_j" type="fixed">
   <origin xyz="0.002227 4e-06 -0.127897" rpy="0 0 0"/>
   <parent link="r_diff_hand_1"/>
   <child link="r_ball_leg_1"/>
   <axis xyz="0.999519 -1.2e-05 -0.031019"/>
 </joint>
 
-<joint name="r_back_j" type="continuous">
+<joint name="r_back_j" type="fixed">
   <origin xyz="0.030181 -0.370084 0.335368" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="right_back_link_1"/>
   <axis xyz="-0.0 -1.0 0.0"/>
 </joint>
 
-<joint name="r_front_j" type="continuous">
+<joint name="r_front_j" type="fixed">
   <origin xyz="0.030181 -0.370084 0.335368" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="right_front_link_1"/>
   <axis xyz="-0.0 -1.0 0.0"/>
 </joint>
 
-<joint name="l_front_j" type="continuous">
+<joint name="l_front_j" type="fixed">
   <origin xyz="0.030181 0.369196 0.335368" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="left_front_link_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
-<joint name="r_leg2_j" type="continuous">
+<joint name="r_leg2_j" type="fixed">
   <origin xyz="-0.126025 0.07164 -0.120727" rpy="0 0 0"/>
   <parent link="right_back_link_1"/>
   <child link="right_leg2_link_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
-<joint name="r_leg1_j" type="continuous">
+<joint name="r_leg1_j" type="fixed">
   <origin xyz="0.118913 0.072094 -0.124679" rpy="0 0 0"/>
   <parent link="right_front_link_1"/>
   <child link="right_leg1_link_1"/>
   <axis xyz="0.0 1.0 0.0"/>
 </joint>
 
-<joint name="l_leg1_j" type="continuous">
+<joint name="l_leg1_j" type="fixed">
   <origin xyz="0.118559 -0.099495 -0.125015" rpy="0 0 0"/>
   <parent link="left_front_link_1"/>
   <child link="left_leg1_link_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
-<joint name="l_leg2_j" type="continuous">
+<joint name="l_leg2_j" type="fixed">
   <origin xyz="-0.1252 -0.099032 -0.121582" rpy="0 0 0"/>
   <parent link="left_back_link_1"/>
   <child link="left_leg2_link_1"/>

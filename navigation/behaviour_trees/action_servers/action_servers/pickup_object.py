@@ -154,10 +154,10 @@ class PickupObjectActionServer(Node):
         result.success = True
         return result
 
-    def get_final_object_pose(self):
-        if self.current_object_pose is not None:
-            self.final_pose_publisher.publish(self.current_object_pose)
-            self.get_logger().info('Published final object pose.')
+    # def get_final_object_pose(self):
+    #     if self.current_object_pose is not None:
+    #         self.final_pose_publisher.publish(self.current_object_pose)
+    #         self.get_logger().info('Published final object pose.')
         
 
 def main(args=None):

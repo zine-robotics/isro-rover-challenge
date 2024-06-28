@@ -54,6 +54,12 @@ def generate_launch_description():
         output='screen'
     )
 
+    drop_object_launch = Node(
+        package='action_servers', 
+        executable='drop_object', 
+        output='screen'
+    )
+
     return LaunchDescription([
         socket_server_launch,
         # trajectory_action_server,
@@ -61,5 +67,7 @@ def generate_launch_description():
         calibration_launch,
         mandatory_wpf_launch,
         pickup_object_launch,
+        drop_object_launch,
         behaviour_tree_launch,
+
     ])

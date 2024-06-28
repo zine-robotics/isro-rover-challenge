@@ -50,7 +50,7 @@ def generate_launch_description():
                                             description='Flag to enable use_sim_time'),
 
         robot_state_publisher_node,
-        # robot_localization_node,
+        robot_localization_node,
         twist_mux,
     
     ])

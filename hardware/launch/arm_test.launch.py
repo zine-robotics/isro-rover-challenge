@@ -8,8 +8,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
-arm_testing_dir= get_package_share_directory('arm_action_server')
-arm_moveit_dir = get_package_share_directory('zine_moveit_config')
+arm_action_server_dir= get_package_share_directory('arm_action_server')
 
 def generate_launch_description():
     
@@ -26,21 +25,26 @@ def generate_launch_description():
             executable='joint_state_publisher',  
             output='screen'
         ),
-
-        # Node(
-        #     package='arm_action_server',
-        #     executable='arm_trajectory_action_server',
-        #     output='screen',
-        # ),
+        Node(
+            package='arm_planner', 
+            executable='arm_planner_api',  
+            output='screen'
+        ),
+        Node(
+            package='action_servers', 
+            executable='pickup_object', 
+            output='screen'
+        ),
+        Node(
+            package='action_servers', 
+            executable='drop_object', 
+            output='screen'
+        ),
 
         IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(
-            arm_testing_dir, 'launch', 'arm_action_server.launch.py')
+            arm_action_server_dir, 'launch', 'arm_action_server_withgripper.launch.py')
         )),
 
-        IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(
-            arm_moveit_dir, 'launch', 'arm_testing.launch.py')
-        ))
     ])
 

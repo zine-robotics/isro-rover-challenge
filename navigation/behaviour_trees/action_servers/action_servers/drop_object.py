@@ -33,7 +33,7 @@ class DropObjectActionServer(Node):
             Bool,
             'pose_status',
             self.pose_status_callback,
-            1
+            2
         )
 
         # Publisher for final object pose
