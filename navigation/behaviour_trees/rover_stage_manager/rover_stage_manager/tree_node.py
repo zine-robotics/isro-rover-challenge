@@ -32,7 +32,7 @@ def create_root():
         Calibrate(), 
         WaypointNavigate(),
         PickupObject(),
-        AutonomousNavigate(),
+        # AutonomousNavigate(),
         DropObject(),
         Finish()
     ])

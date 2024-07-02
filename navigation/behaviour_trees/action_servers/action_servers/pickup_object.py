@@ -99,7 +99,7 @@ class PickupObjectActionServer(Node):
             return
 
         # Desired ranges for x and y coordinates
-        x_min, x_max = 0.5, 0.8
+        x_min, x_max = 0.6, 0.8
         y_min, y_max = -0.2, 0.2
 
         x = self.current_object_pose.position.x
@@ -153,12 +153,6 @@ class PickupObjectActionServer(Node):
         result = Pickup.Result()
         result.success = True
         return result
-
-    # def get_final_object_pose(self):
-    #     if self.current_object_pose is not None:
-    #         self.final_pose_publisher.publish(self.current_object_pose)
-    #         self.get_logger().info('Published final object pose.')
-        
 
 def main(args=None):
     rclpy.init(args=args)
