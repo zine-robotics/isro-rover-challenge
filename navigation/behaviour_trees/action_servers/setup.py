@@ -24,6 +24,7 @@ setup(
             'pickup_object = action_servers.pickup_object:main',
             'rupesh = action_servers.rupesh:main',
             'calibration = action_servers.calibration:main',
+            'drop_object = action_servers.drop_object:main',
 
         ],
     },

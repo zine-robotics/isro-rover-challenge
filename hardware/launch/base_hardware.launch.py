@@ -8,7 +8,7 @@ def generate_launch_description():
         # Declare the serial port argument
         DeclareLaunchArgument(
             'serial_port',
-            default_value='/dev/ttyACM0',  # Default port
+            default_value='/dev/ttyUSB1',  # Default port
             description='Serial port for connecting to Arduino'
         ),
 
@@ -28,3 +28,4 @@ def generate_launch_description():
         )
     ])
 
+#ros2 launch hardware base_hardware.launch.py serial_port:=/dev/ttyUSB0

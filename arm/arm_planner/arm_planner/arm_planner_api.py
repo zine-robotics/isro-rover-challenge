@@ -29,9 +29,9 @@ from action_msgs.msg import GoalStatus
 import rclpy.action
 from rclpy.action import ActionClient
 # Segment lengths (in centimeters)
-L1 = 30  # length of segment 1
-L2 = 53  # length of segment 2
-L3 = 49  # length of segment 3
+L1 = 25  # length of segment 1
+L2 = 55  # length of segment 2
+L3 = 55  # length of segment 3
 L4 = 0  # length 10of segment 4
 L5 = 0  # length of segment 5 (end effector)
 
@@ -39,7 +39,7 @@ L5 = 0  # length of segment 5 (end effector)
 joint_limits = {
     'theta1_min': -180,
     'theta1_max': 180,
-    'theta2_min': 0,
+    'theta2_min': -10,
     'theta2_max': 180,
     'theta3_min': -160,
     'theta3_max': 160,
@@ -72,29 +72,33 @@ class PickPlace(Node):
 
     def pick_pose_goal_callback(self, msg):
         # Process received pose goal message
-        x = msg.position.x + 20
-        y = -(msg.position.y+2)
-        z = msg.position.z + 10
+        x = msg.position.x +20
+        y = -(msg.position.y)
+        z = -25
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pick Pose Goal: x={x}, y={y}, z={z}")
         pick_object(logger,pose)
 
+
         msg2 = Bool()
         msg2.data = True
         self.publisher_.publish(msg2)
+        self.get_logger().info("POSE STATUS PUBLISHED")
 
     def drop_pose_goal_callback(self, msg):
         # Process received pose goal message
-        x = msg.position.x
-        y = msg.position.y
-        z = msg.position.z
+        x = msg.position.x +20
+        y = -(msg.position.y)
+        z = -15
         pose = {'x':x,'y':y,'z':z}
         self.get_logger().info(f"Received Pose Goal: x={x}, y={y}, z={z}")
         drop_object(logger,pose)
 
-        msg2 = Bool()
-        msg2.data = True
-        self.publisher_.publish(msg2)
+        for i in range(3):
+            msg2 = Bool()
+            msg2.data = True
+            self.publisher_.publish(msg2)
+            self.get_logger().info("POSE STATUS PUBLISHED")
 
 class TrajectoryActionClient(Node):
     def __init__(self):
@@ -103,11 +107,12 @@ class TrajectoryActionClient(Node):
             self,
             FollowJointTrajectory,
             'zine_arm_controller/follow_joint_trajectory')
+        self._result_future = None
 
-    def send_goal(self, trajectory, join_names):
+    def send_goal(self, trajectory, joint_names):
         goal_msg = FollowJointTrajectory.Goal()
         goal_msg.trajectory.points = trajectory
-        goal_msg.trajectory.joint_names = join_names
+        goal_msg.trajectory.joint_names = joint_names
 
         self._action_client.wait_for_server()
         self._send_goal_future = self._action_client.send_goal_async(goal_msg)
@@ -121,13 +126,85 @@ class TrajectoryActionClient(Node):
 
         self.get_logger().info('Goal accepted :)')
 
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self.get_result_callback)
-    
+        self._result_future = goal_handle.get_result_async()
+        self._result_future.add_done_callback(self.get_result_callback)
+
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info(f'Result: {result}')
-        self.destroy_node()
+
+def inverse_kinematics(x, y, z):
+    solutions = []
+
+    # Joint 1 (Yaw)
+    theta1 = math.atan2(y, x)
+
+    # Adjust target position relative to the base of the second link
+    r = math.sqrt(x**2 + y**2)
+    z_adj = z - L1
+    d = math.sqrt(r**2 + z_adj**2)
+
+    # Check if the target is reachable
+    if d > L2 + L3 or d < abs(L2 - L3):
+        print("Target is out of reach!")
+        return None
+
+    # Calculate theta3 (elbow angle)
+    cos_theta3 = (d**2 - L2**2 - L3**2) / (2 * L2 * L3)
+    if abs(cos_theta3) > 1:
+        print("No valid solution for theta3")
+        return None
+
+    theta3_1 = math.acos(cos_theta3)
+    theta3_2 = -theta3_1  # second possible solution
+
+    # Iterate over theta3 solutions
+    for theta3 in [theta3_1, theta3_2]:
+        # Calculate theta2 (shoulder angle)
+        theta2 = math.atan2(z_adj, r) - math.atan2(L3 * math.sin(theta3), L2 + L3 * math.cos(theta3))
+
+        # Check joint limits for all angles
+        if (joint_limits['theta1_min'] <= math.degrees(theta1) <= joint_limits['theta1_max']) and \
+           (joint_limits['theta2_min'] <= math.degrees(theta2) <= joint_limits['theta2_max']) and \
+           (joint_limits['theta3_min'] <= math.degrees(theta3) <= joint_limits['theta3_max']):
+            solutions.append((theta1, theta2, theta3))
+
+    return solutions
+
+def zine_ik_solver(target_x, target_y, target_z):
+    kinematic_solutions = inverse_kinematics(target_x, target_y, target_z)
+    if kinematic_solutions:
+        # Find the best solution (closest to initial position)
+        best_solution = None
+        min_distance = float('inf')
+
+        for solution in kinematic_solutions:
+            # Calculate end effector position of the solution
+            x_end = (L2 * math.cos(solution[1]) + L3 * math.cos(solution[1] + solution[2])) * math.cos(solution[0])
+            y_end = (L2 * math.cos(solution[1]) + L3 * math.cos(solution[1] + solution[2])) * math.sin(solution[0])
+            z_end = L1 + L2 * math.sin(solution[1]) + L3 * math.sin(solution[1] + solution[2])
+
+            distance = math.sqrt((target_x - x_end)**2 + (target_y - y_end)**2 + (target_z - z_end)**2)
+
+            # Update best solution if closer to the target position
+            if distance < min_distance:
+                min_distance = distance
+                best_solution = solution
+
+        best_solution = np.degrees(best_solution)
+        final_solution = np.zeros(5)
+        final_solution[0] = best_solution[0]
+        final_solution[1] = best_solution[1]-90
+        final_solution[2] = best_solution[2]+90
+        final_solution[4] = final_solution[1] + final_solution[2]
+        if final_solution[4]<-85: final_solution[4]=-85
+        elif final_solution[4]>85: final_solution[4]=85
+        final_solution = fix_quadrants(final_solution)
+
+        return np.radians(final_solution[:5])
+    
+    else:
+        return [0.0, 0.0, 0.0,0.0,0.0]
 
 def fix_quadrants(solution):
     limits = list(joint_limits.values())
@@ -139,104 +216,8 @@ def fix_quadrants(solution):
     
     return solution
 # Calculate inverse kinematics with joint limits
-def inverse_kinematics(x, y, z):
-    solutions = []
 
-    # Joint 1 (Yaw) is fixed
-    theta1 = math.atan2(y,x)
 
-    # Adjust target position relative to link1's fixed orientation
-    x_adj = x - L1 * math.cos(theta1)
-    y_adj = y - L1 * math.sin(theta1)
-
-    # Calculate distance from joint 1 to end effector in adjusted position
-    distance = math.sqrt(x_adj**2 + y_adj**2 + z**2)
-
-    # Check if the target is reachable
-    if distance > L2 + L3 + L4 + L5:
-        print("Target is out of reach!")
-        return None
-
-    # Iterate over possible solutions
-    for i in range(-1, 2, 2):  # -1 and 1
-        # Calculate theta5 (joint 5 angle, roll)
-        theta5 = math.atan2(i * y_adj, i * x_adj)
-
-        # Calculate distance from joint 4 to end effector in 2D plane (xy-plane)
-        distance_xy = math.sqrt(x_adj**2 + y_adj**2)
-
-        # Calculate theta3 (joint 3 angle)
-        cos_theta3 = (distance_xy**2 + (z - L1)**2 - L2**2 - L3**2) / (2 * L2 * L3)
-        if abs(cos_theta3) > 1:
-            continue  # skip invalid solutions
-        theta3_1 = math.acos(cos_theta3)
-        theta3_2 = -theta3_1  # second possible solution
-
-        # Iterate over theta3 solutions
-        for theta3 in [theta3_1, theta3_2]:
-            # Calculate theta2 (joint 2 angle)
-            theta2 = math.atan2(z - L1, distance_xy) \
-                     - math.atan2(L3 * math.sin(theta3), L2 + L3 * math.cos(theta3))
-
-            # Calculate theta4 (joint 4 angle, roll)
-            theta4 = theta5 - theta2 - theta3
-
-            # Calculate theta6 (joint 6 angle for end effector)
-            theta6 = math.atan2(z - L1, distance_xy)
-
-            # Check joint limits for all angles
-            if (joint_limits['theta1_min'] <= math.degrees(theta1) <= joint_limits['theta1_max']) and \
-               (joint_limits['theta2_min'] <= math.degrees(theta2 )<= joint_limits['theta2_max']) and \
-               (joint_limits['theta3_min'] <= math.degrees(theta3) <= joint_limits['theta3_max']) and \
-               (joint_limits['theta4_min'] <= math.degrees(theta4) <= joint_limits['theta4_max']) and \
-               (joint_limits['theta5_min'] <= math.degrees(theta5) <= joint_limits['theta5_max']) and \
-               (joint_limits['theta6_min'] <= math.degrees(theta6) <= joint_limits['theta6_max']):
-                solutions.append((theta1, theta2, theta3, theta4, theta5, theta6))
-
-    return solutions
-
-# Perform inverse kinematics calculation
-
-def zine_ik_solver(target_x, target_y, target_z):
-    kinematic_solutions = inverse_kinematics(target_x, target_y, target_z)
-    if kinematic_solutions:
-        # Find the best solution (closest to initial position)
-        best_solution = None
-        min_distance = float('inf')
-    
-        for solution in kinematic_solutions:
-            # Calculate distance from initial position to end effector position of the solution
-            x_end = L1 * math.cos(solution[0]) + L2 * math.cos(solution[0] + solution[1]) \
-                    + L3 * math.cos(solution[0] + solution[1] + solution[2]) \
-                    + L4 * math.cos(solution[0] + solution[1] + solution[2] + solution[3]) \
-                    + L5 * math.cos(solution[0] + solution[1] + solution[2] + solution[3] + solution[4])
-            y_end = L1 * math.sin(solution[0]) + L2 * math.sin(solution[0] + solution[1]) \
-                    + L3 * math.sin(solution[0] + solution[1] + solution[2]) \
-                    + L4 * math.sin(solution[0] + solution[1] + solution[2] + solution[3]) \
-                    + L5 * math.sin(solution[0] + solution[1] + solution[2] + solution[3] + solution[4])
-            z_end = L1 + L2 * math.cos(solution[1]) + L3 * math.cos(solution[1] + solution[2]) \
-                    + L4 * math.cos(solution[1] + solution[2] + solution[3]) \
-                    + L5 * math.cos(solution[1] + solution[2] + solution[3] + solution[4])
-    
-            distance = math.sqrt((target_x - x_end)**2 + (target_y - y_end)**2 + (target_z - z_end)**2)
-    
-            # Update best solution if closer to the target position
-            if distance < min_distance:
-                min_distance = distance
-                best_solution = solution
-        best_solution = np.degrees(np.array(best_solution))
-        best_solution[1] -= 90
-        best_solution[2] += 90
-        best_solution = fix_quadrants(best_solution)
-        best_solution[3] = 0.0
-        # best_solution[4] = 0.0
-        best_solution[4] = best_solution[1] + best_solution[2]
-
-        return np.radians(best_solution[:5])
-
-    else:
-        return [0.0,0.0,0.0,0.0,0.0]
-    
 
 def plan_and_execute(joint_names, joint_values, logger, sleep_time=0.0):
     """Helper function to plan and execute a motion using the action client."""
@@ -245,14 +226,24 @@ def plan_and_execute(joint_names, joint_values, logger, sleep_time=0.0):
     point = JointTrajectoryPoint()
     point.positions = joint_values
     trajectory.append(point)
-
+    logger.info(f"{trajectory}")
     action_client = TrajectoryActionClient()
 
+    # Send the goal
     action_client.send_goal(trajectory, joint_names)
+    
+    # Wait for the result
+    while rclpy.ok() and action_client._result_future is None:
+        rclpy.spin_once(action_client)
 
-    rclpy.spin(action_client)
+    # Wait until the result is received
+    rclpy.spin_until_future_complete(action_client, action_client._result_future)
+    
+    # Shut down the action client node after the result is received
+    action_client.destroy_node()
 
     time.sleep(sleep_time)
+
 
     
 def move_to_pose(logger,pose, gripper_close=0):
@@ -272,7 +263,7 @@ def move_to_pose(logger,pose, gripper_close=0):
         joint_ik_values[2],
         joint_ik_values[3],
         joint_ik_values[4],
-        0.0
+        gripper_close
     ]
 
     # robot_state.joint_positions = joint_values
@@ -291,34 +282,34 @@ def move_to_pose(logger,pose, gripper_close=0):
 def pick_object(logger,pose):
 
        #implement approcah near object
-    pose['x']-=3
-    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
+    # pose['x']-=5
+    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=0.0)
     logger.info("Arm reached for approaching position")
-    time.sleep(5)
+    time.sleep(3)
     #implment approach at object
-    pose['x']+=10
+
     joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for gripping position")
-    time.sleep(5)
+    time.sleep(3)
     #implement dropping action 
-    joint_values = [0.0,0.0,0.0,0.0,0.0,0.0] # open gripper
+    joint_values = [0.0,0.0,0.0,0.0,0.0,1.0]
     plan_and_execute( joint_names, joint_values, logger, sleep_time=5)
 
 
 def drop_object(logger,pose):
 
     #implement approcah near object
-    pose['x']-=10
+    pose['z']+=10
     joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
     logger.info("Arm reached for approaching position")
-    time.sleep(5)
+    time.sleep(3)
     #implment approach at object
-    pose['x']+=10
-    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=1.0)
+
+    joint_names, joint_values = move_to_pose(logger,pose, gripper_close=0.0)
     logger.info("Arm reached for gripping position")
-    time.sleep(5)
+    time.sleep(3)
     #implement dropping action 
-    joint_values = [0.0,0.0,0.0,0.0,0.0,0.0] # open gripper
+    joint_values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0] # rest position
     plan_and_execute( joint_names, joint_values, logger, sleep_time=5)
 
     #implement move to ready state

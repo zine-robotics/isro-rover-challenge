@@ -19,7 +19,7 @@ class VelocityPublisher(Node):
         self.odom_publisher = self.create_publisher(Odometry, 'odom', 10)
         self.tf_broadcaster = TransformBroadcaster(self)
         self.timer = self.create_timer(0.1, self.read_serial_data)
-        self.ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+        self.ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
         self.x = 0.0
         self.y = 0.0
         self.theta = 0.0

@@ -2,7 +2,8 @@ import py_trees
 from rclpy.action import ActionClient
 from rclpy.callback_groups import CallbackGroup
 
-from interfaces.action import Waypoint
+from interfaces.action import Pickup
+from geometry_msgs.msg import Pose, PoseArray
 
 class PickupObject(py_trees.behaviour.Behaviour):
     def __init__(self, name="Pickup Object"):
@@ -16,24 +17,25 @@ class PickupObject(py_trees.behaviour.Behaviour):
     def setup(self, node):
         self.node = node
         self.node.get_logger().info("Pickup Object Setup")
-
-        # TODO:
-        # # Put Action Type and Action String
-        # self.action_client = ActionClient(self.node, Waypoint, 'follow_waypoints')
-        # ##
-
-        # while not self.action_client.wait_for_server(timeout_sec=5):
-        #     self.logger.error(f"{self.name} waiting for action server...")
-
+        self.action_client= ActionClient(self.node,Pickup,"pickup_object")
+        while not self.action_client.wait_for_server(timeout_sec=5):
+            self.node.get_logger().error(f"{self.name} waiting for action server...")
+     
     def initialise(self):
         self.node.get_logger().info("Pickup Object Initialize")
-        # TODO:
-        # goal_msg = Waypoint.Goal()
-        # # Fill Goal Message 
-        # ##
+        goal_msg = Pickup.Goal()
+        # Populate the goal message with the object position
+        object_position = Pose()
+        object_position.position.x = 0.6  # Example position
+        object_position.position.y = 0.0
+        object_position.position.z = 0.0
+        object_position.orientation.x = 0.0
+        object_position.orientation.y = 0.0
+        object_position.orientation.z = 0.0
 
-        # self._goal_handle = self.action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
-        # self._goal_handle.add_done_callback(self._goal_response_callback)
+        goal_msg.object_position = object_position
+        self._goal_handle = self.action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
+        self._goal_handle.add_done_callback(self._goal_response_callback)
 
     def _goal_response_callback(self, future):
         self._goal_handle = future.result()
@@ -62,11 +64,11 @@ class PickupObject(py_trees.behaviour.Behaviour):
 
     def update(self):
         # TODO: 
-        # if self._result is not None:
-        #     if self._result.success:
-        #         return py_trees.common.Status.SUCCESS
-        #     else:
-        #         return py_trees.common.Status.FAILURE
+        if self._result is not None:
+            if self._result.success:
+                return py_trees.common.Status.SUCCESS
+            else:
+                return py_trees.common.Status.FAILURE
         return py_trees.common.Status.RUNNING
 
     def terminate(self, new_status):

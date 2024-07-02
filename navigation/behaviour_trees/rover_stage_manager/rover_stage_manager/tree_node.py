@@ -4,6 +4,7 @@ import rclpy
 
 from rover_stage_manager.stages.waypoint_navigate import WaypointNavigate
 from rover_stage_manager.stages.pickup_object import PickupObject
+from rover_stage_manager.stages.drop_object import DropObject
 from rover_stage_manager.stages.autonomous_navigation import AutonomousNavigate
 from rover_stage_manager.stages.calibration import Calibrate
 from rover_stage_manager.stages.base_station_setup import BaseStationSetup
@@ -32,6 +33,7 @@ def create_root():
         WaypointNavigate(),
         PickupObject(),
         AutonomousNavigate(),
+        DropObject(),
         Finish()
     ])
     return root
