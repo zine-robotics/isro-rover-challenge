@@ -10,7 +10,7 @@ import pyrealsense2 as rs
 from geometry_msgs.msg import Pose
 from rclpy.qos import QoSProfile, DurabilityPolicy,ReliabilityPolicy
 from error_correction import error_corrector
-model = YOLO("/home/mahaveer/outside/src/isro-rover-challenge/perception/model/cylinder_optimiser_l.pt")
+model = YOLO("/home/zine/final_bot/isro-rover-challenge/perception/model/all2_l (1).pt")
 threshold = 0.5
 width = 640
 height = 480
@@ -27,21 +27,21 @@ class ImageProcessor(Node):
         )
         self.rgb_subscriber = self.create_subscription(
             Image,
-            '/camera/color/image_raw',
+            '/front/stereo_camera/left/rgb',
             self.rgb_callback,
             qos_profile
             )
 
         self.depth_subscriber = self.create_subscription(
             Image,
-            '/camera/realsense_splitter_node/output/depth',
+            '/front/stereo_camera/left/depth',
             self.depth_callback,
             qos_profile
             )
         
         self.camera_info_subscriber = self.create_subscription(
             CameraInfo,
-            '/camera/depth/camera_info',
+            '/front/stereo_camera/left/camera_info',
             self.camera_info_callback,
             qos_profile
             )
