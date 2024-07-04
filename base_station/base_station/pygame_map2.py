@@ -45,6 +45,7 @@ def draw_obj_circle(surface: pygame.Surface, center_x: int, center_y: int, obj: 
 def draw_map():
     surface = pygame.Surface((screen_width, screen_height))
     surface.fill(WHITE)
+    pygame.draw.rect(surface, BLACK, (0, 0, screen_width, screen_height), 3)
     for id, tag, coord in coord_list:
         center_x = int(coord[0] * 100)  # Scale coordinates
         center_y = -int(coord[1] * 100)
@@ -336,5 +337,5 @@ def get_map():
 
 
 # if __name__ == "__main__":
-#     # draw_heatmap()
+#     draw_heatmap()
 #     pass
